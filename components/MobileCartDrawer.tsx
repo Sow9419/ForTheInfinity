@@ -7,11 +7,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { CartContent } from './CartContent';
+import { usePathname } from 'next/navigation';
 
 export function MobileCartDrawer() {
   const { cartCount, totalPrice, isCartOpen, setIsCartOpen } = useCartStore();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+  const pathname = usePathname();
+  const isProductPage = pathname?.startsWith('/product/');
 
   React.useEffect(() => {
     const mainContent = document.getElementById('main-content');
@@ -40,7 +43,7 @@ export function MobileCartDrawer() {
     };
   }, []);
 
-  const showMobileBar = (cartCount > 0 || isScrolled) && isMobile;
+  const showMobileBar = (cartCount > 0 || isScrolled) && isMobile && !isProductPage;
 
   return (
     <>
@@ -100,7 +103,7 @@ export function MobileCartDrawer() {
       <Sheet open={isCartOpen && isMobile} onOpenChange={setIsCartOpen}>
         <SheetContent
           side="bottom"
-          className="md:hidden z-[100] bg-white border-none p-0 h-screen max-h-screen w-full rounded-none outline-none [&>button]:hidden overflow-hidden"
+          className="md:hidden z-[100] bg-white border-none p-0 h-screen max-h-screen w-full rounded-t-2xl outline-none [&>button]:hidden overflow-hidden"
         >
           <CartContent onClose={() => setIsCartOpen(false)} showCloseOnMobile />
         </SheetContent>

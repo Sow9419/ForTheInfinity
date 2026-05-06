@@ -10,9 +10,12 @@ interface CartStore {
   cartCount: number;
   totalPrice: number;
   isCartOpen: boolean;
-  addToCart: (product: Product) => void;
+  isCheckoutOpen: boolean;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   setIsCartOpen: (isOpen: boolean) => void;
+  setIsCheckoutOpen: (isOpen: boolean) => void;
+  clearCart: () => void;
 }
 
 export const useCartStore = create<CartStore>((set) => ({
@@ -20,26 +23,26 @@ export const useCartStore = create<CartStore>((set) => ({
   cartCount: 0,
   totalPrice: 0,
   isCartOpen: false,
+  isCheckoutOpen: false,
 
-  addToCart: (product) => set((state) => {
+  addToCart: (product, quantity = 1) => set((state) => {
     const existingItem = state.items.find((item) => item.id === product.id);
     
     let updatedItems;
     if (existingItem) {
       updatedItems = state.items.map((item) =>
         item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
+          ? { ...item, quantity: item.quantity + quantity }
           : item
       );
     } else {
-      updatedItems = [...state.items, { ...product, quantity: 1 }];
+      updatedItems = [...state.items, { ...product, quantity: quantity }];
     }
 
     return {
       items: updatedItems,
-      cartCount: state.cartCount + 1,
-      totalPrice: state.totalPrice + product.price,
-      isCartOpen: true,
+      cartCount: state.cartCount + quantity,
+      totalPrice: state.totalPrice + (product.price * quantity),
     };
   }),
 
@@ -59,4 +62,6 @@ export const useCartStore = create<CartStore>((set) => ({
   }),
 
   setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
+  setIsCheckoutOpen: (isOpen) => set({ isCheckoutOpen: isOpen }),
+  clearCart: () => set({ items: [], cartCount: 0, totalPrice: 0 }),
 }));

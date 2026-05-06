@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/store/useCartStore';
 import { MobileCartDrawer } from '@/components/MobileCartDrawer';
 import { CartContent } from '@/components/CartContent';
+import { CheckoutTunnel } from '@/components/CheckoutTunnel';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { isCartOpen, setIsCartOpen } = useCartStore();
@@ -18,6 +19,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       >
         {children}
         <MobileCartDrawer />
+        <CheckoutTunnel />
       </div>
 
       {/* Panier Desktop — Split View fixe sur la droite */}

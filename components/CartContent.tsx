@@ -1,11 +1,25 @@
 'use client';
 
 import React from 'react';
-import { ShoppingBag, Plus, Minus, X } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, ArrowLeft } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { OrderForm } from './detail-product/OrderForm';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 interface CartContentProps {
   onClose?: () => void;
@@ -15,7 +29,12 @@ interface CartContentProps {
 }
 
 export function CartContent({ onClose, showHeader = true, showCloseOnMobile = false }: CartContentProps) {
-  const { cartCount, totalPrice, items, removeFromCart, addToCart } = useCartStore();
+  const { cartCount, totalPrice, items, removeFromCart, addToCart, clearCart, setIsCartOpen, setIsCheckoutOpen } = useCartStore();
+
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
 
   return (
     <div className="flex flex-col h-full bg-white relative">
@@ -91,7 +110,10 @@ export function CartContent({ onClose, showHeader = true, showCloseOnMobile = fa
             </div>
           </div>
           
-          <Button className="w-full h-16 rounded-[2rem] bg-[#00C38A] text-white hover:bg-[#00ab78] shadow-lg shadow-emerald-500/20 transition-all flex items-center px-4 gap-4">
+          <Button 
+            onClick={handleCheckout}
+            className="w-full h-16 rounded-[2rem] bg-[#00C38A] text-white hover:bg-[#00ab78] shadow-lg shadow-emerald-500/20 transition-all flex items-center px-4 gap-4"
+          >
             <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center flex-shrink-0">
                <span className="text-white font-black text-sm">N</span>
             </div>
