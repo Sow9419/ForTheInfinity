@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, ShoppingBag } from 'lucide-react';
+import { ArrowRight, MessageCircle, ShoppingBag } from 'lucide-react';
 import { useShopStore } from '../store/useShopStore';
 import { PRODUCTS } from '../lib/data';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,14 +32,14 @@ export function HeroSection() {
 
       <div className="pt-20"></div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center max-w-4xl mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-end px-6 text-center max-w-4xl mx-auto">
         <div className="overflow-hidden mb-6">
           <motion.h2 
             key={`title-${activeHeroProduct.id}`}
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 50, damping: 20 }}
-            className="text-6xl md:text-8xl lg:text-[120px] font-black text-white tracking-tighter leading-[0.85] flex flex-col items-center uppercase"
+            className="text-7xl md:text-8xl lg:text-[100px] font-black text-white tracking-tighter leading-[0.85] flex items-center uppercase"
             style={{ fontFamily: "'Anton', sans-serif" }}
           >
             {activeHeroProduct.name.split(' ')[0]}
@@ -73,11 +73,9 @@ export function HeroSection() {
           >
             <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white group-hover:scale-110 transition-transform relative z-10" />
           </button>
-          <button className="flex-1 h-12 sm:h-14 lg:h-16 bg-[#F2F1E8] rounded-full flex items-center justify-between px-4 sm:px-6 lg:px-8 hover:scale-[1.02] transition-transform shadow-xl group">
-            <span className="text-black font-black text-xs sm:text-sm lg:text-base tracking-widest uppercase">Commander</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform">
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
+          <button className="flex-1 h-12 sm:h-14 lg:h-16 bg-white rounded-full flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-0 hover:bg-gray-100 active:scale-[0.98] transition-all shadow-lg group">
+            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[#25D366] group-hover:scale-110 transition-transform" />
+            <span className="text-black font-semibold text-sm sm:text-base">Discuter sur WhatsApp</span>
           </button>
         </motion.div>
       </div>

@@ -44,7 +44,7 @@ export function ProductGrid() {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-50px" }}
-      className="columns-2 md:columns-3 xl:columns-4 gap-4 sm:gap-6 pb-0 px-2"
+      className="columns-2 md:columns-3 xl:columns-4 gap-2 sm:gap-2 pb-0 px-2"
     >
       {filteredProducts.map((product) => (
         <motion.div 
@@ -52,7 +52,9 @@ export function ProductGrid() {
           variants={itemVariants}
           className="bg-[#ECEEE5] rounded-none overflow-hidden flex flex-col transition-all cursor-pointer break-inside-avoid mb-4 sm:mb-6 group"
           onClick={() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const el = document.getElementById('main-content');
+            if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
             setActiveHeroProduct(product);
           }}
         >
@@ -86,7 +88,7 @@ export function ProductGrid() {
               </p>
               <button 
                 onClick={(e) => handleAddToCart(e, product)}
-                className="bg-black hover:bg-gray-800 transition-colors rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center flex-shrink-0 active:scale-95 transition-all shadow-lg text-white"
+                className="bg-black hover:bg-gray-800 transition-colors rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center flex-shrink-0 active:scale-95 shadow-lg text-white"
               >
                 <Plus size={24} strokeWidth={2.5} />
               </button>

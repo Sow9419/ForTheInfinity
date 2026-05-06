@@ -12,11 +12,24 @@ export function Header() {
   const { totalPrice, cartCount, setIsCartOpen } = useCartStore();
 
   useEffect(() => {
+    const mainContent = document.getElementById('main-content');
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      const scrollPos = mainContent ? mainContent.scrollTop : window.scrollY;
+      setScrolled(scrollPos > 50);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    if (mainContent) {
+      mainContent.addEventListener('scroll', handleScroll);
+      handleScroll();
+    } else {
+      window.addEventListener('scroll', handleScroll);
+      handleScroll();
+    }
+
+    return () => {
+      if (mainContent) mainContent.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
