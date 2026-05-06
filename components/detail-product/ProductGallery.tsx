@@ -19,12 +19,12 @@ export function ProductGallery({ images, title, activeImage, setActiveImage }: P
   };
 
   return (
-    <div className="w-full md:w-1/2 md:h-full relative flex flex-col shrink-0 px-2 md:px-0">
-      <div className="relative w-full aspect-4/5 md:aspect-auto md:h-full rounded-[24px] md:rounded-none overflow-hidden bg-[#111] shadow-sm md:shadow-none">
+    <div className="w-full h-full relative flex flex-col shrink-0 px-2 md:px-0 pt-4 md:pt-0">
+      <div className="relative w-full h-full md:aspect-auto md:h-full rounded-4xl md:rounded-none overflow-hidden bg-gray-100 shadow-sm md:shadow-none">
         <img
           src={images[activeImage]}
           alt={title.replace('\n', ' ')}
-          className="w-full h-full object-cover opacity-90 transition-opacity duration-500 ease-in-out"
+          className="w-full h-full object-cover opacity-100 transition-opacity duration-500 ease-in-out"
         />
 
         {/* Share Button */}

@@ -8,7 +8,7 @@ import { useCartStore } from '../store/useCartStore';
 import { motion } from 'motion/react';
 import { Product } from '@/types';
 import { cn } from '@/lib/utils';
-
+import Link from 'next/link';
 import Image from 'next/image';
 
 const containerVariants = {
@@ -47,17 +47,15 @@ export function ProductGrid() {
       className="columns-2 md:columns-3 xl:columns-4 gap-2 sm:gap-2 pb-0 px-2"
     >
       {filteredProducts.map((product) => (
-        <motion.div 
-          key={product.id} 
-          variants={itemVariants}
-          className="bg-[#ECEEE5] rounded-none overflow-hidden flex flex-col transition-all cursor-pointer break-inside-avoid mb-4 sm:mb-6 group"
-          onClick={() => {
-            const el = document.getElementById('main-content');
-            if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
-            else window.scrollTo({ top: 0, behavior: 'smooth' });
-            setActiveHeroProduct(product);
-          }}
+        <Link 
+          href={`/product/${product.id}`}
+          key={product.id}
+          className="block"
         >
+          <motion.div 
+            variants={itemVariants}
+            className="bg-[#ECEEE5] rounded-none overflow-hidden flex flex-col transition-all cursor-pointer break-inside-avoid mb-4 sm:mb-6 group"
+          >
           <div className="p-3 md:p-4 lg:p-5 flex flex-col gap-3 md:gap-4">
             <div className="text-center px-2">
               <p className="font-roboto font-medium text-lg md:text-xl lg:text-2xl text-black mb-1 leading-tight tracking-tight">
@@ -94,7 +92,8 @@ export function ProductGrid() {
               </button>
             </div>
           </div>
-        </motion.div>
+          </motion.div>
+        </Link>
       ))}
     </motion.div>
   );

@@ -46,7 +46,7 @@ export function FooterBar({
 
   const orderTrigger = (
     <button className="bg-[#00D632] text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] hover:bg-[#00e836] transition-colors">
-      Commander <Truck className="w-4 h-4" strokeWidth={2.5} />
+      Ajouter au panier <Truck className="w-4 h-4" strokeWidth={2.5} />
     </button>
   );
 
@@ -72,7 +72,7 @@ export function FooterBar({
       {isDesktop ? (
         <Sheet open={isOrderOpen} onOpenChange={setIsOrderOpen}>
           <SheetTrigger className="bg-[#00D632] text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] hover:bg-[#00e836] transition-colors">
-            Commander <Truck className="w-4 h-4" strokeWidth={2.5} />
+            Ajouter au panier <Truck className="w-4 h-4" strokeWidth={2.5} />
           </SheetTrigger>
           <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
             <SheetHeader>

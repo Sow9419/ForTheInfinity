@@ -4,8 +4,6 @@ import { Star } from 'lucide-react';
 interface ProductDetailsProps {
   collection: string;
   title: string;
-  rating: number;
-  reviewsCount: number;
   price: number;
   currency: string;
   quantity: number;
@@ -15,8 +13,6 @@ interface ProductDetailsProps {
 export function ProductDetails({
   collection,
   title,
-  rating,
-  reviewsCount,
   price,
   currency,
   quantity,
@@ -32,15 +28,6 @@ export function ProductDetails({
         <h1 className="text-3xl md:text-[44px] font-extrabold leading-[1.05] md:leading-[0.95] tracking-tight md:tracking-[-1.5px] text-gray-900 md:text-[#111] m-0 whitespace-pre-line">
           {title}
         </h1>
-
-        <div className="flex items-center gap-1.5 md:gap-[10px] mt-1 md:mt-[5px]">
-          <div className="flex gap-[2px]">
-            {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 md:w-4 md:h-4 fill-[#FBBF24] text-[#FBBF24]" />)}
-          </div>
-          <span className="text-[13px] md:text-[14px] font-medium md:font-normal text-gray-600 md:text-[#666]">
-            {rating?.toFixed(1) || "5.0"} <span className="text-[#3B82F6] md:text-[#666] font-normal md:font-bold">({reviewsCount?.toLocaleString('en-US') || "0"} reviews)</span>
-          </span>
-        </div>
       </div>
 
       {/* Price Tag & Quantity */}
