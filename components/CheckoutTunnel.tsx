@@ -17,11 +17,7 @@ export function CheckoutTunnel() {
   const [isSuccess, setIsSuccess] = React.useState(false);
 
   const handleClear = () => {
-    setTimeout(() => {
-      clearCart();
-      setIsCheckoutOpen(false);
-      setIsSuccess(false);
-    }, 3000);
+    clearCart();
   };
 
   const checkoutContent = (
@@ -32,6 +28,7 @@ export function CheckoutTunnel() {
         success={isSuccess} 
         setSuccess={setIsSuccess}
         onClearCart={handleClear}
+        closeCheckout={() => setIsCheckoutOpen(false)}
       />
     </div>
   );

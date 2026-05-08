@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { PRODUCTS } from '@/lib/data';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCartStore } from '@/store/useCartStore';
 
 // Components from detail-product
 import { ProductGallery } from "@/components/detail-product/ProductGallery";
@@ -14,6 +15,7 @@ import { ProductDescription } from "@/components/detail-product/ProductDescripti
 import { FAQSection } from "@/components/detail-product/FAQSection";
 import { FooterBar } from "@/components/detail-product/FooterBar";
 import { ProductSkeleton } from "@/components/detail-product/ProductSkeleton";
+import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 
 export default function ProductPage() {
   const params = useParams();
@@ -23,8 +25,13 @@ export default function ProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [product, setProduct] = useState<any>(null);
   const [activeImage, setActiveImage] = useState(0);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  
+  const { items } = useCartStore();
+  const cartItem = items.find(item => item.id === (params?.id as string));
+  const currentQuantity = cartItem ? cartItem.quantity : 1; // Par défaut 1 pour WhatsApp si pas dans panier
 
-  const productId = params?.id ? parseInt(params.id as string) : null;
+  const productId = params?.id as string;
 
   useEffect(() => {
     if (!productId) {
@@ -32,43 +39,48 @@ export default function ProductPage() {
       return;
     }
 
-    const timer = setTimeout(() => {
-      const baseProduct = PRODUCTS.find(p => p.id === productId);
+    async function fetchProduct() {
+      try {
+        const response = await fetch('/api/products');
+        const products = await response.json();
+        const baseProduct = products.find((p: any) => p.id === productId);
 
-      if (baseProduct) {
-        const enrichedProduct = {
-          ...baseProduct,
-          brand: "Jokin Mode",
-          collection: baseProduct.subtitle || "Infinity Collection",
-          title: baseProduct.name,
-          currency: "FCFA",
-          images: [
-            baseProduct.image,
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800",
-            "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&q=80&w=800",
-            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800"
-          ],
-          specs: [
-            { label: "Matière", value: "100% Coton Premium" },
-            { label: "Coupe", value: "Oversized Fit" },
-            { label: "Poids", value: "240 GSM" },
-            { label: "Entretien", value: "Lavage à froid" }
-          ],
-          description: {
-            short: baseProduct.description,
-            extended: baseProduct.description + " Conçu pour durer, ce produit allie style et confort exceptionnel. Chaque détail a été pensé pour offrir une expérience unique."
-          },
-          faqs: [
-            { question: "Quelle taille choisir ?", answer: "Nous recommandons votre taille habituelle pour un effet légèrement ample." },
-            { question: "Le tissu rétrécit-il au lavage ?", answer: "Non, nos tissus sont pré-rétrécis pour garantir une tenue parfaite." }
-          ]
-        };
-        setProduct(enrichedProduct);
+        if (baseProduct) {
+          const enrichedProduct = {
+            ...baseProduct,
+            brand: "Jokin Mode",
+            collection: baseProduct.subtitle || "Infinity Collection",
+            title: baseProduct.name,
+            currency: "FCFA",
+            images: baseProduct.images?.length > 0 ? baseProduct.images : (baseProduct.image ? [baseProduct.image] : []),
+            specs: [
+              { label: "Matière", value: "100% Coton Premium" },
+              { label: "Coupe", value: "Oversized Fit" },
+              { label: "Poids", value: "240 GSM" },
+              { label: "Entretien", value: "Lavage à froid" }
+            ],
+            description: {
+              short: baseProduct.shortDescription || "Pas de description disponible.",
+              extended: baseProduct.extendedDescription || ""
+            },
+            faqs: [
+              { question: "Quelle taille choisir ?", answer: "Nous recommandons votre taille habituelle pour un effet légèrement ample." },
+              { question: "Quels sont les délais de livraison ?", answer: "La livraison à Bamako s'effectue en 24h. Pour les autres villes du Mali et de la sous-région, comptez 2 à 5 jours ouvrés." },
+              { question: "Puis-je échanger un article ?", answer: "Oui, vous disposez de 48h après réception pour demander un échange si la taille ne vous convient pas (sous réserve de stock disponible)." },
+              { question: "Quels sont les modes de paiement ?", answer: "Nous acceptons les paiements en espèces à la livraison (Bamako) ainsi que les transferts Orange Money et Moov Money." },
+              { question: "Comment entretenir mon vêtement ?", answer: "Pour préserver la qualité du coton et de l'impression, nous conseillons un lavage à l'envers à 30°C et d'éviter le sèche-linge." }
+            ]
+          };
+          setProduct(enrichedProduct);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }, 500);
+    }
 
-    return () => clearTimeout(timer);
+    fetchProduct();
   }, [productId]);
 
   if (isLoading) return <ProductSkeleton />;
@@ -97,17 +109,24 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen md:h-screen w-full bg-white flex flex-col md:flex-row font-sans relative md:overflow-hidden">
+      
+      <FloatingWhatsApp 
+        productName={product.title} 
+        price={product.price} 
+        quantity={currentQuantity}
+        selectedSizes={selectedSizes}
+      />
 
       {/* Back Button */}
       <button
         onClick={() => router.push('/')}
-        className="flex absolute top-4 left-4 z-[60] bg-white/10 hover:bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/20 transition-all group"
+        className="flex absolute top-4 left-4 z-[60] bg-black/10 hover:bg-black/10 backdrop-blur-md p-3 rounded-full border border-white/20 transition-all group"
       >
-        <ArrowLeft className="w-5 h-5 text-white group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft className="w-5 h-5 text-black group-hover:-translate-x-1 transition-transform" />
       </button>
 
       {/* Left Column: Media Gallery */}
-      <div className="w-full md:w-1/2 h-[70vh] md:h-full relative overflow-hidden bg-gray-100">
+      <div className="w-full md:w-1/2 h-[70vh] md:h-full relative overflow-hidden bg-[#ECEEE5]">
         <ProductGallery
           images={product.images}
           title={product.title}
@@ -117,7 +136,7 @@ export default function ProductPage() {
       </div>
 
       {/* Right Column: Content */}
-      <div className="w-full md:w-1/2 flex-1 px-5 py-6 md:p-[40px] flex flex-col gap-6 md:gap-[25px] md:overflow-y-auto pb-[100px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+      <div className="w-full bg-[#ECEEE5] md:w-1/2 flex-1 px-5 py-6 md:p-[40px] flex flex-col gap-6 md:gap-[25px] md:overflow-y-auto pb-[100px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
 
         <ProductDetails
           collection={product.collection}
@@ -125,6 +144,8 @@ export default function ProductPage() {
           price={product.price}
           currency={product.currency}
           product={product}
+          selectedSizes={selectedSizes}
+          onSizesChange={setSelectedSizes}
         />
 
         <ProductSpecs specs={product.specs} />

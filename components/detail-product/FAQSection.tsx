@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/accordion";
 
 interface FAQSectionProps {
-  faqs: { q: string, a: string }[];
+  faqs: { question: string, answer: string }[];
 }
 
 export function FAQSection({ faqs }: FAQSectionProps) {
@@ -20,10 +20,10 @@ export function FAQSection({ faqs }: FAQSectionProps) {
         {faqs.map((faq, i) => (
           <AccordionItem key={i} value={`item-${i}`} className="border-gray-100 md:border-[#EEE]">
             <AccordionTrigger className="py-[16px] md:py-[12px] text-[13.5px] md:text-[13px] font-semibold text-[#333] hover:no-underline hover:bg-gray-50 transition-colors px-2 text-left">
-              {faq.q}
+              {faq.question}
             </AccordionTrigger>
             <AccordionContent className="text-gray-500 text-[13px] px-2 pb-4">
-              {faq.a}
+              {faq.answer}
             </AccordionContent>
           </AccordionItem>
         ))}

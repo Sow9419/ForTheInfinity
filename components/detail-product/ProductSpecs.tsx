@@ -1,25 +1,55 @@
 import React from 'react';
-import { CheckCircle2, Truck } from 'lucide-react';
+import { ShieldCheck, Truck, Sparkles, RefreshCw, Ruler, Droplets } from 'lucide-react';
 
 interface ProductSpecsProps {
-  specs?: { text: string }[];
+  specs?: { label: string; value: string }[];
 }
 
+const SPEC_ICONS: Record<string, any> = {
+  "Matière": Sparkles,
+  "Coupe": Ruler,
+  "Poids": ShieldCheck,
+  "Entretien": Droplets,
+  "Livraison": Truck,
+  "Garantie": ShieldCheck,
+  "default": CheckCircle2
+};
+
+import { CheckCircle2 } from 'lucide-react';
+
 export function ProductSpecs({ specs }: ProductSpecsProps) {
+  if (!specs || specs.length === 0) {
+    // Default fallback specs if none provided
+    specs = [
+      { label: "Qualité", value: "Garantie satisfaction" },
+      { label: "Expédition", value: "Livraison 24/48h" }
+    ];
+  }
+
   return (
-    <div className="flex flex-col gap-2.5 md:gap-[12px]">
-      <div className="flex items-center gap-3 md:gap-[10px] text-[13px] text-gray-700 md:text-[#444] font-medium">
-        <div className="md:w-[18px] md:h-[18px] md:bg-[#F0F0F0] rounded-full flex items-center justify-center">
-          <CheckCircle2 className="w-5 h-5 md:w-3 md:h-3 text-gray-400 md:text-[#111] stroke-[1.5] md:stroke-2" />
-        </div>
-        <span>{specs?.[0]?.text || "Garantie satisfaction"}</span>
-      </div>
-      <div className="flex items-center gap-3 md:gap-[10px] text-[13px] text-gray-700 md:text-[#444] font-medium">
-        <div className="md:w-[18px] md:h-[18px] md:bg-[#F0F0F0] rounded-full flex items-center justify-center">
-          <Truck className="w-5 h-5 md:w-3 md:h-3 text-gray-400 md:text-[#111] stroke-[1.5] md:stroke-2" />
-        </div>
-        <span>{specs?.[1]?.text || "Livraison gratuite"}</span>
-      </div>
+    <div className="grid grid-cols-2 gap-3 md:gap-4 mt-2">
+      {specs.map((spec, idx) => {
+        const Icon = SPEC_ICONS[spec.label] || SPEC_ICONS.default;
+        return (
+          <div 
+            key={idx} 
+            className="flex flex-col gap-2 p-3 md:p-4 rounded-2xl bg-white/40 border border-white/60 backdrop-blur-sm hover:bg-white/60 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Icon className="w-4 h-4 text-black/60" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
+                {spec.label}
+              </p>
+              <p className="text-xs md:text-sm text-black font-semibold">
+                {spec.value}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
+

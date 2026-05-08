@@ -99,15 +99,21 @@ export function MobileCartDrawer() {
         )}
       </AnimatePresence>
 
-      {/* 2. Le Contenant (Container) : Tiroir Plein Écran sur Mobile (Actif UNIQUEMENT sur mobile) */}
-      <Sheet open={isCartOpen && isMobile} onOpenChange={setIsCartOpen}>
-        <SheetContent
-          side="bottom"
-          className="md:hidden z-[100] bg-white border-none p-0 h-screen max-h-screen w-full rounded-t-2xl outline-none [&>button]:hidden overflow-hidden"
-        >
-          <CartContent onClose={() => setIsCartOpen(false)} showCloseOnMobile />
-        </SheetContent>
-      </Sheet>
+      {/* 2. Le Contenant (Container) : Tiroir Plein Écran sur Mobile (Framer Motion pour cohérence Desktop) */}
+      <AnimatePresence>
+        {isCartOpen && isMobile && (
+          <motion.div
+            key="mobile-cart-drawer"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="md:hidden fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden"
+          >
+            <CartContent onClose={() => setIsCartOpen(false)} showCloseOnMobile />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

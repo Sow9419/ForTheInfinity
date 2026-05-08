@@ -30,9 +30,9 @@ export function ProductGallery({ images, title, activeImage, setActiveImage }: P
         {/* Share Button */}
         <button
           onClick={handleShare}
-          className="absolute top-4 right-4 md:top-8 md:right-8 z-20 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+          className="absolute top-4 right-4 md:top-8 md:right-8 z-20 w-10 h-10 bg-black/10 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
         >
-          <Share className="w-4 h-4 text-white ml-[-2px]" />
+          <Share className="w-4 h-4 text-black ml-[-2px]" />
         </button>
 
         <div className="absolute bottom-0 left-0 right-0 p-5 md:p-[30px] bg-linear-to-t from-black/80 to-transparent flex flex-col gap-[15px]">
@@ -41,7 +41,7 @@ export function ProductGallery({ images, title, activeImage, setActiveImage }: P
               <button
                 key={idx}
                 onClick={() => setActiveImage(idx)}
-                className={`w-14 h-14 md:w-[60px] md:h-[60px] shrink-0 rounded-[8px] overflow-hidden border-2 transition-all duration-300 ${activeImage === idx ? 'border-white md:border-white' : 'border-transparent md:border-white/30 opacity-70 hover:opacity-100'
+                className={`w-14 h-14 md:w-[60px] md:h-[60px] shrink-0 rounded-full overflow-hidden border-2 transition-all duration-300 ${activeImage === idx ? 'border-white md:border-white' : 'border-transparent md:border-white/30 opacity-70 hover:opacity-100'
                   }`}
               >
                 <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />

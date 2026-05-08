@@ -1,10 +1,20 @@
 // types.ts
 export interface Product {
-  id: number;
+  id: string; // Airtable Record ID
   name: string;
   subtitle: string;
   price: number;
   image: string;
   tall: boolean;
-  description?: string;
+  shortDescription?: string;
+  extendedDescription?: string;
+  rating?: number;
+  reviewsCount?: number;
+  variants?: string[];
+  category?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
 }

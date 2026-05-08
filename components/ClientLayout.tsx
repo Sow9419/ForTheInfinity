@@ -6,12 +6,25 @@ import { useCartStore } from '@/store/useCartStore';
 import { MobileCartDrawer } from '@/components/MobileCartDrawer';
 import { CartContent } from '@/components/CartContent';
 import { CheckoutTunnel } from '@/components/CheckoutTunnel';
+import { GlobalLoader } from '@/components/GlobalLoader';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { isCartOpen, setIsCartOpen } = useCartStore();
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-white w-full">
+      <AnimatePresence mode="wait">
+        {isLoading && <GlobalLoader key="loader" />}
+      </AnimatePresence>
+
       {/* Zone de contenu principale — scroll indépendant */}
       <div
         id="main-content"

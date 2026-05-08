@@ -2,6 +2,7 @@ import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { CategoryBar } from '@/components/CategoryBar';
 import { ProductGrid } from '@/components/ProductGrid';
+import { CinematicFooter } from '@/components/motion-footer';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
         <CategoryBar />
         <ProductGrid />
       </main>
+      <CinematicFooter />
     </>
   );
 }

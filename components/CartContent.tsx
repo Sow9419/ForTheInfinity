@@ -56,7 +56,7 @@ export function CartContent({ onClose, showHeader = true, showCloseOnMobile = fa
       )}
 
       {/* Items List */}
-      <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto p-6 min-h-0">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
             <ShoppingBag size={48} className="opacity-20" />
@@ -71,6 +71,18 @@ export function CartContent({ onClose, showHeader = true, showCloseOnMobile = fa
                 </div>
                 <div className="flex-1">
                   <h4 className="font-black text-black uppercase tracking-tight font-sans text-sm line-clamp-1">{item.name}</h4>
+                  
+                  {/* Affichage des tailles sélectionnées */}
+                  {item.selectedSizes && item.selectedSizes.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.selectedSizes.map(size => (
+                        <span key={size} className="text-[9px] font-bold bg-black text-white px-1.5 py-0.5 rounded-md uppercase">
+                          {size}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <p className="text-[#00C38A] font-black mt-1 text-sm">{item.price.toLocaleString('en-US')} FCFA</p>
                   
                   <div className="flex items-center gap-4 mt-3">

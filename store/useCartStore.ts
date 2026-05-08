@@ -3,6 +3,7 @@ import { Product } from '../types';
 
 interface CartItem extends Product {
   quantity: number;
+  selectedSizes?: string[];
 }
 
 interface CartStore {
@@ -11,10 +12,11 @@ interface CartStore {
   totalPrice: number;
   isCartOpen: boolean;
   isCheckoutOpen: boolean;
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
+  addToCart: (product: Product, quantity?: number, selectedSizes?: string[]) => void;
+  removeFromCart: (productId: string) => void;
   setIsCartOpen: (isOpen: boolean) => void;
   setIsCheckoutOpen: (isOpen: boolean) => void;
+  updateCartItemSizes: (productId: string, sizes: string[]) => void;
   clearCart: () => void;
 }
 
@@ -25,18 +27,22 @@ export const useCartStore = create<CartStore>((set) => ({
   isCartOpen: false,
   isCheckoutOpen: false,
 
-  addToCart: (product, quantity = 1) => set((state) => {
+  addToCart: (product, quantity = 1, selectedSizes = []) => set((state) => {
     const existingItem = state.items.find((item) => item.id === product.id);
     
     let updatedItems;
     if (existingItem) {
       updatedItems = state.items.map((item) =>
         item.id === product.id
-          ? { ...item, quantity: item.quantity + quantity }
+          ? { 
+              ...item, 
+              quantity: item.quantity + quantity,
+              selectedSizes: Array.from(new Set([...(item.selectedSizes || []), ...selectedSizes]))
+            }
           : item
       );
     } else {
-      updatedItems = [...state.items, { ...product, quantity: quantity }];
+      updatedItems = [...state.items, { ...product, quantity: quantity, selectedSizes }];
     }
 
     return {
@@ -63,5 +69,10 @@ export const useCartStore = create<CartStore>((set) => ({
 
   setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
   setIsCheckoutOpen: (isOpen) => set({ isCheckoutOpen: isOpen }),
+  updateCartItemSizes: (productId, sizes) => set((state) => ({
+    items: state.items.map((item) => 
+      item.id === productId ? { ...item, selectedSizes: sizes } : item
+    )
+  })),
   clearCart: () => set({ items: [], cartCount: 0, totalPrice: 0 }),
 }));

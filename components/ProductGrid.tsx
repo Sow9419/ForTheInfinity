@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { PRODUCTS } from '../lib/data';
 import { useShopStore } from '../store/useShopStore';
 import { useCartStore } from '../store/useCartStore';
 import { motion } from 'motion/react';
@@ -27,11 +26,29 @@ const itemVariants = {
 };
 
 export function ProductGrid() {
-  const { setActiveHeroProduct, activeCategory } = useShopStore();
+  const { activeCategory } = useShopStore();
   const { addToCart } = useCartStore();
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  // Simulated filtering for effect
-  const filteredProducts = PRODUCTS; // In a real app we'd filter by activeCategory
+  React.useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter(p => 
+    !activeCategory ? true : p.category === activeCategory
+  );
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
@@ -39,13 +56,23 @@ export function ProductGrid() {
     addToCart(product);
   };
 
+  if (loading) {
+    return (
+      <div className="columns-2 md:columns-3 xl:columns-4 gap-2 sm:gap-2 pb-0 px-2">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="bg-gray-100 aspect-[3/4] mb-6 rounded-none animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <motion.div 
+      key={activeCategory}
       variants={containerVariants}
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-50px" }}
-      className="columns-2 md:columns-3 xl:columns-4 gap-2 sm:gap-2 pb-0 px-2"
+      animate="show"
+      className="columns-2 md:columns-3 gap-2 sm:gap-2 pb-0 px-2"
     >
       {filteredProducts.map((product) => (
         <motion.div 
@@ -66,17 +93,19 @@ export function ProductGrid() {
               </div>
               
               <div className={cn(
-                "bg-white/50 rounded-none overflow-hidden relative",
+                "rounded-none overflow-hidden relative",
                 product.tall ? "aspect-[3/4]" : "aspect-square"
               )}>
-                <Image
-                  fill
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
+                {product.image && (
+                  <Image
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
               </div>
             </Link>
 

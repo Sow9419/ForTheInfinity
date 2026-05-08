@@ -1,17 +1,47 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, MessageCircle, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Eye, MessageCircle, ShoppingBag, Star } from 'lucide-react';
 import { useShopStore } from '../store/useShopStore';
 import { PRODUCTS } from '../lib/data';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
+import { getWhatsAppUrl } from '@/lib/utils';
 
 import Image from 'next/image';
+import { Product } from '@/types';
+import { useRouter } from 'next/navigation';
+import InfinityLoader from './InfinityLoader';
 
 export function HeroSection() {
   const { activeHeroProduct, setActiveHeroProduct } = useShopStore();
   const { addToCart } = useCartStore();
+  const router = useRouter();
+  const [products, setProducts] = React.useState<Product[]>([]);
+
+  React.useEffect(() => {
+    async function fetchHeroProducts() {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProducts(data);
+        if (!activeHeroProduct && data.length > 0) {
+          setActiveHeroProduct(data[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hero products:", error);
+      }
+    }
+    fetchHeroProducts();
+  }, [activeHeroProduct, setActiveHeroProduct]);
+
+  if (!activeHeroProduct) {
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <InfinityLoader size={250} />
+      </div>
+    );
+  }
 
   return (
     <section className="relative w-full min-h-[100dvh] flex flex-col justify-between overflow-hidden">
@@ -32,58 +62,103 @@ export function HeroSection() {
 
       <div className="pt-20"></div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-end px-6 text-center max-w-4xl mx-auto">
-        <div className="overflow-hidden mb-6">
-          <motion.h2 
-            key={`title-${activeHeroProduct.id}`}
-            initial={{ y: 50, opacity: 0 }}
+      <div className="relative z-10 flex flex-col justify-end px-6 max-w-7xl mx-auto w-full pb-8 mt-auto">
+        <div className="flex flex-col items-center md:items-start text-center md:text-left w-full max-w-2xl gap-5 mx-auto md:mx-0">
+          
+          <div className="overflow-hidden">
+            <motion.h2 
+              key={`title-${activeHeroProduct.id}`}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 50, damping: 20 }}
+              className="text-[40px] sm:text-[48px] md:text-[60px] lg:text-[72px] font-light italic text-white tracking-tight leading-[0.9] flex flex-wrap justify-center md:justify-start items-baseline gap-x-3 uppercase"
+              style={{ fontFamily: "var(--font-cormorant)" }}
+            >
+              {activeHeroProduct.name.split(' ')[0]}
+              {activeHeroProduct.name.split(' ')[1] && (
+                <span className="text-transparent" style={{ WebkitTextStroke: '1.5px white', WebkitTextFillColor: 'transparent' }}>
+                  {activeHeroProduct.name.split(' ').slice(1).join(' ')}
+                </span>
+              )}
+            </motion.h2>
+          </div>
+          
+          <motion.p 
+            key={`desc-${activeHeroProduct.id}`}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 50, damping: 20 }}
-            className="text-7xl md:text-8xl lg:text-[100px] font-black text-white tracking-tighter leading-[0.85] flex items-center uppercase"
-            style={{ fontFamily: "'Anton', sans-serif" }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="text-gray-300 text-sm md:text-base max-w-lg leading-relaxed font-light backdrop-blur-sm"
           >
-            {activeHeroProduct.name.split(' ')[0]}
-            {activeHeroProduct.name.split(' ')[1] && (
-              <span className="text-transparent" style={{ WebkitTextStroke: '1.5px white', WebkitTextFillColor: 'transparent' }}>
-                {activeHeroProduct.name.split(' ').slice(1).join(' ')}
-              </span>
-            )}
-          </motion.h2>
-        </div>
-        
-        <motion.p 
-          key={`desc-${activeHeroProduct.id}`}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-gray-200 text-sm sm:text-base md:text-lg mb-8 max-w-lg leading-relaxed font-light backdrop-blur-sm"
-        >
-          {activeHeroProduct.description}
-        </motion.p>
+            {activeHeroProduct.shortDescription}
+          </motion.p>
 
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="flex flex-row items-center gap-3 w-full max-w-md mx-auto justify-center"
-        >
-          <button 
-            onClick={() => addToCart(activeHeroProduct)}
-            className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-[#F2F1E8]/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors shadow-lg group relative overflow-hidden"
+          <motion.div
+            key={`meta-${activeHeroProduct.id}`}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex items-center justify-center md:justify-start gap-4 w-full md:w-auto"
           >
-            <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white group-hover:scale-110 transition-transform relative z-10" />
-          </button>
-          <button className="flex-1 h-12 sm:h-14 lg:h-16 bg-white rounded-full flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-0 hover:bg-gray-100 active:scale-[0.98] transition-all shadow-lg group">
-            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[#25D366] group-hover:scale-110 transition-transform" />
-            <span className="text-black font-semibold text-sm sm:text-base">Discuter sur WhatsApp</span>
-          </button>
-        </motion.div>
+            <div className="flex flex-col items-center md:items-start gap-0.5">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className={`w-3.5 h-3.5 ${i < Math.round(activeHeroProduct.rating || 5) ? 'fill-[#FBBF24] text-[#FBBF24]' : 'fill-white/20 text-white/20'}`} 
+                  />
+                ))}
+              </div>
+              <span className="text-white/50 text-[9px] uppercase tracking-widest font-medium">
+                {(activeHeroProduct.reviewsCount || 0).toLocaleString()} avis
+              </span>
+            </div>
+            
+            <div className="h-6 w-[1px] bg-white/20" />
+            
+            <div className="flex items-baseline gap-1">
+              <span className="text-white text-xl md:text-2xl font-bold tracking-tighter">
+                {activeHeroProduct.price.toLocaleString('fr-FR')}
+              </span>
+              <span className="text-xs font-light text-white/60">FCFA</span>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="flex flex-row items-center gap-2.5 w-full justify-center md:justify-start mt-2"
+          >
+            <button 
+              onClick={() => addToCart(activeHeroProduct)}
+              className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#F2F1E8]/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors shadow-lg group relative overflow-hidden"
+            >
+              <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-white group-hover:scale-110 transition-transform relative z-10" />
+            </button>
+            <a 
+              href={getWhatsAppUrl(activeHeroProduct?.name, activeHeroProduct?.price)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-10 md:h-12 bg-white rounded-full flex items-center justify-center gap-2 px-4 md:px-5 hover:bg-gray-100 active:scale-[0.98] transition-all shadow-lg group"
+            >
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 text-[#25D366] group-hover:scale-110 transition-transform" />
+              <span className="text-black font-semibold text-xs md:text-sm whitespace-nowrap">Discuter sur WhatsApp</span>
+            </a>
+            <button 
+              onClick={() => router.push(`/product/${activeHeroProduct.id}`)}
+              className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#F2F1E8]/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors shadow-lg group relative overflow-hidden"
+            >
+              <Eye className="w-4 h-4 md:w-5 md:h-5 text-white group-hover:scale-110 transition-transform relative z-10" />
+            </button>
+          </motion.div>
+        </div>
       </div>
 
       {/* --- CIRCULAR STORIES UI --- */}
       <div className="relative z-10 w-full pb-0 pt-4">
         <div className="flex items-center justify-start md:justify-center gap-4 px-6 py-0 h-[160px] overflow-x-auto hide-scrollbar snap-x scroll-smooth">
-          {PRODUCTS.map((product) => {
+          {products.map((product) => {
             const isActive = activeHeroProduct.id === product.id;
             return (
               <motion.div 
