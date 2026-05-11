@@ -2,27 +2,15 @@
 
 import React from 'react';
 import { useShopStore } from '../store/useShopStore';
-import { CATEGORIES } from '../lib/data';
 import { motion } from 'motion/react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 
+import { useCategories } from '@/hooks/use-categories';
+
 export function CategoryBar() {
   const { activeCategory, setActiveCategory } = useShopStore();
-  const [categories, setCategories] = React.useState<any[]>([]);
-
-  React.useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    }
-    fetchCategories();
-  }, []);
+  const { categories } = useCategories();
 
   return (
     <div className="w-full pb-6">
@@ -34,7 +22,7 @@ export function CategoryBar() {
             className={`whitespace-nowrap px-6 py-4 text-sm font-black uppercase tracking-widest transition-all duration-300 ${
               activeCategory === ''
                 ? 'bg-black text-white shadow-xl'
-                : 'bg-[#ECEEE5] text-gray-500 hover:bg-gray-200'
+                : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:bg-white/60 hover:shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-0.5'
             }`}
           >
             Tous
@@ -47,7 +35,7 @@ export function CategoryBar() {
               className={`whitespace-nowrap px-6 py-4 text-sm font-black uppercase tracking-widest transition-all duration-300 ${
                 activeCategory === cat.id
                   ? 'bg-black text-white shadow-xl'
-                  : 'bg-[#ECEEE5] text-gray-500 hover:bg-gray-200'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:bg-white/60 hover:shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-0.5'
               }`}
             >
               {cat.name}

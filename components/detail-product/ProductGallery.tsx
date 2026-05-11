@@ -20,7 +20,7 @@ export function ProductGallery({ images, title, activeImage, setActiveImage }: P
 
   return (
     <div className="w-full h-full relative flex flex-col shrink-0 px-2 md:px-0 pt-4 md:pt-0">
-      <div className="relative w-full h-full md:aspect-auto md:h-full rounded-4xl md:rounded-none overflow-hidden bg-gray-100 shadow-sm md:shadow-none">
+      <div className="relative w-full h-full md:aspect-auto md:h-full rounded-4xl md:rounded-none overflow-hidden bg-transparent shadow-sm md:shadow-none">
         <img
           src={images[activeImage]}
           alt={title.replace('\n', ' ')}

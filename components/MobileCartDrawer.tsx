@@ -22,7 +22,7 @@ export function MobileCartDrawer() {
       const pos = mainContent ? mainContent.scrollTop : window.scrollY;
       setIsScrolled(pos > 100);
     };
-    
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -92,7 +92,7 @@ export function MobileCartDrawer() {
                 }}
                 className="h-12 bg-white text-black px-6 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-transform flex items-center gap-2"
               >
-                ENCAISSER <Wallet size={16} />
+                Commander <Wallet size={16} />
               </Button>
             </div>
           </motion.div>
@@ -108,7 +108,7 @@ export function MobileCartDrawer() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="md:hidden fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden"
+            className="md:hidden fixed inset-0 z-[100] bg-black/30 backdrop-blur-2xl flex flex-col overflow-hidden"
           >
             <CartContent onClose={() => setIsCartOpen(false)} showCloseOnMobile />
           </motion.div>

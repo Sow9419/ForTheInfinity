@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShoppingBag, ShoppingCart, ArrowRight } from 'lucide-react';
+import { ShoppingBasket, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { CartContent } from '@/components/CartContent';
@@ -61,7 +61,7 @@ export function FooterBar({ product, isDesktop }: FooterBarProps) {
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
-                  className="absolute -top-2 -right-2.5 bg-[#00D632] text-black text-[11px] font-black min-w-[22px] h-[22px] px-1.5 rounded-full flex items-center justify-center border-[2.5px] border-[#161B22] shadow-[0_4px_15px_rgba(0,214,50,0.45)]"
+                  className="absolute -top-2 -right-2.5 bg-white text-black text-[11px] font-black min-w-[22px] h-[22px] px-1.5 rounded-full flex items-center justify-center border-[2.5px] border-[#161B22] shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
                 >
                   {cartCount}
                 </motion.div>
@@ -77,36 +77,25 @@ export function FooterBar({ product, isDesktop }: FooterBarProps) {
         </button>
 
         {/* Droite : Ajouter au panier */}
-        <button
+        <motion.button
           onClick={handleAddToCart}
-          className="bg-[#00D632] text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] hover:bg-[#00e836] active:scale-95 transition-all"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative group bg-white text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] overflow-hidden shadow-lg transition-all"
         >
-          <ShoppingBag className="w-4 h-4" strokeWidth={2.5} />
-          Ajouter
-        </button>
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+          <div className="relative z-10 flex items-center gap-2">
+            <motion.div
+              animate={{ rotate: [0, -10, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            >
+              <ShoppingBasket className="w-4 h-4" strokeWidth={2.5} />
+            </motion.div>
+            <span>Ajouter</span>
+          </div>
+        </motion.button>
       </div>
 
-      {/* Sheet Panier Global (Desktop) */}
-      <Sheet open={isCartOpen && isDesktop} onOpenChange={setIsCartOpen}>
-        <SheetContent
-          side="right"
-          className="w-[420px] sm:w-[480px] p-0 overflow-hidden [&>button]:hidden"
-        >
-          <div className="h-full flex flex-col">
-            <CartContent onClose={() => setIsCartOpen(false)} />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Sheet Panier Global (Mobile) */}
-      <Sheet open={isCartOpen && !isDesktop} onOpenChange={setIsCartOpen}>
-        <SheetContent
-          side="bottom"
-          className="h-[90vh] p-0 overflow-hidden rounded-t-3xl [&>button]:hidden"
-        >
-          <CartContent onClose={() => setIsCartOpen(false)} showCloseOnMobile />
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

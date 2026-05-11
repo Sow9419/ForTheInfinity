@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { airtableFetch, Tables } from '@/lib/airtable';
+import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 import { generateOrderEmailHtml } from '@/components/emails/OrderEmail';
 
@@ -11,44 +11,38 @@ export async function POST(request: Request) {
     const { name, phone, address, items, total, city, coordinates } = body;
 
     // 1. Créer la commande client
-    const orderData = {
-      records: [
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert([
         {
-          fields: {
-            "Nom Complet": name,
-            "Telephone": phone,
-            "Ville": city || "Bamako",
-            "Adresse": address,
-            "Total": total,
-            "Status": "Nouveau"
-          }
+          full_name: name,
+          phone: phone,
+          city: city || "Bamako",
+          address: address,
+          total: total,
+          status: "Nouveau"
         }
-      ]
-    };
+      ])
+      .select()
+      .single();
 
-    const orderResponse = await airtableFetch(`/${Tables.CommandeClient}`, {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
+    if (orderError) throw orderError;
 
-    const orderId = orderResponse.records[0].id;
+    const orderId = order.id;
 
     // 2. Créer les OrderItems liés à cette commande
-    const orderItemsData = {
-      records: items.map((item: any) => ({
-        fields: {
-          "Order": [orderId],
-          "Product": [item.id], // ID de l'enregistrement Airtable du produit
-          "Quantity": item.quantity,
-          "Size": item.selectedSizes?.join(', ') || ''
-        }
-      }))
-    };
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(
+        items.map((item: any) => ({
+          order_id: orderId,
+          product_id: item.id,
+          quantity: item.quantity,
+          size: item.selectedSizes?.join(', ') || ''
+        }))
+      );
 
-    await airtableFetch(`/${Tables.OrderItems}`, {
-      method: 'POST',
-      body: JSON.stringify(orderItemsData),
-    });
+    if (itemsError) throw itemsError;
 
     // 3. Envoyer l'email de notification via Resend
     try {
