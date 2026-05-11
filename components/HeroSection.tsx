@@ -6,9 +6,9 @@ import { useShopStore } from '../store/useShopStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
 import { getWhatsAppUrl } from '@/lib/utils';
+import { useProducts } from '@/hooks/use-products';
 
 import Image from 'next/image';
-import { Product } from '@/types';
 import { useRouter } from 'next/navigation';
 import InfinityLoader from './InfinityLoader';
 
@@ -16,25 +16,15 @@ export function HeroSection() {
   const { activeHeroProduct, setActiveHeroProduct } = useShopStore();
   const { addToCart } = useCartStore();
   const router = useRouter();
-  const [products, setProducts] = React.useState<Product[]>([]);
+  const { products, loading } = useProducts();
 
   React.useEffect(() => {
-    async function fetchHeroProducts() {
-      try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        setProducts(data);
-        if (!activeHeroProduct && data.length > 0) {
-          setActiveHeroProduct(data[0]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch hero products:", error);
-      }
+    if (!loading && products.length > 0 && !activeHeroProduct) {
+      setActiveHeroProduct(products[0]);
     }
-    fetchHeroProducts();
-  }, [activeHeroProduct, setActiveHeroProduct]);
+  }, [products, loading, activeHeroProduct, setActiveHeroProduct]);
 
-  if (!activeHeroProduct) {
+  if (loading || !activeHeroProduct) {
     return (
       <div className="w-full h-screen bg-black flex items-center justify-center">
         <InfinityLoader size={250} />
