@@ -28,6 +28,7 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -78,6 +79,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
   // Data State
@@ -168,16 +170,30 @@ export default function AdminPage() {
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;
-    const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) alert(error.message);
-    else fetchData();
+    setActionLoading(id);
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) throw error;
+      await fetchData();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
-    const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (error) alert(error.message);
-    else fetchData();
+    setActionLoading(id);
+    try {
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+      await fetchData();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const revenueEvolution = useMemo(() => {
@@ -348,7 +364,11 @@ export default function AdminPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 font-bold text-white">{product.price.toLocaleString()} FCFA</td>
-                            <td className="px-6 py-4"><div className="flex items-center justify-end gap-2"><button onClick={() => { setEditingProduct(product); setIsProductModalOpen(true); }} className="p-2 rounded-xl hover:bg-white/5 text-white/20 hover:text-white transition-all"><Edit size={16} /></button><button onClick={() => handleDeleteProduct(product.id)} className="p-2 rounded-xl hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all"><Trash2 size={16} /></button></div></td>
+                            <td className="px-6 py-4"><div className="flex items-center justify-end gap-2">
+                              <button onClick={() => { setEditingProduct(product); setIsProductModalOpen(true); }} className="p-2 rounded-xl hover:bg-white/5 text-white/20 hover:text-white transition-all disabled:opacity-50" disabled={actionLoading === product.id}><Edit size={16} /></button>
+                              <button onClick={() => handleDeleteProduct(product.id)} className="p-2 rounded-xl hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all disabled:opacity-50" disabled={actionLoading === product.id}>
+                                {actionLoading === product.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                              </button></div></td>
                           </tr>
                         ))}
                       </tbody>
@@ -369,7 +389,12 @@ export default function AdminPage() {
                   {categories.map((cat, i) => (
                     <motion.div key={cat.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="group relative flex items-center justify-between p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-purple-500/30 transition-all duration-300">
                       <div className="flex items-center gap-6"><div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform"><Layers size={24} /></div><div><h4 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors">{cat.name}</h4><p className="text-white/20 text-xs font-medium uppercase mt-1">ID: #{cat.id.slice(0, 8)}</p></div></div>
-                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all"><button onClick={() => { setEditingCategory(cat); setIsCategoryModalOpen(true); }} className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Edit size={18} /></button><button onClick={() => handleDeleteCategory(cat.id)} className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/40 hover:text-red-400 transition-all"><Trash2 size={18} /></button></div>
+                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => { setEditingCategory(cat); setIsCategoryModalOpen(true); }} className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all disabled:opacity-50" disabled={actionLoading === cat.id}><Edit size={18} /></button>
+                        <button onClick={() => handleDeleteCategory(cat.id)} className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all disabled:opacity-50" disabled={actionLoading === cat.id}>
+                          {actionLoading === cat.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
