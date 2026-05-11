@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Image as ImageIcon,
+  ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -106,11 +107,16 @@ export default function AdminPage() {
       if (ordersData) {
         setOrders(ordersData);
         const totalRevenue = ordersData.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
+
+        // Fetch real visitors
+        const { count: visitorCount } = await supabase.from('visitor_stats').select('*', { count: 'exact', head: true });
+
         setKpis(prev => ({
           ...prev,
           ordersCount: ordersData.length,
           productsCount: productsData?.length || 0,
-          revenue: totalRevenue
+          revenue: totalRevenue,
+          visitorCount: visitorCount || 0
         }));
       }
     } catch (error) {
@@ -132,34 +138,15 @@ export default function AdminPage() {
 
     checkUser();
 
-    const ordersSubscription = supabase
-      .channel('orders-realtime')
-      .on('postgres_changes', { event: '*', table: 'orders' }, () => fetchData())
-      .subscribe();
-
-    const productsSubscription = supabase
-      .channel('products-realtime')
-      .on('postgres_changes', { event: '*', table: 'products' }, () => fetchData())
-      .subscribe();
-
-    const categoriesSubscription = supabase
-      .channel('categories-realtime')
-      .on('postgres_changes', { event: '*', table: 'categories' }, () => fetchData())
-      .subscribe();
-
-    const visitorInterval = setInterval(() => {
-      setKpis(prev => ({
-        ...prev,
-        visitorCount: Math.max(1, prev.visitorCount + Math.floor(Math.random() * 3) - 1)
-      }));
-    }, 10000);
-    setKpis(prev => ({ ...prev, visitorCount: Math.floor(Math.random() * 20) + 12 }));
+    const subscriptions = [
+      supabase.channel('orders-realtime').on('postgres_changes', { event: '*', table: 'orders' }, () => fetchData()).subscribe(),
+      supabase.channel('products-realtime').on('postgres_changes', { event: '*', table: 'products' }, () => fetchData()).subscribe(),
+      supabase.channel('categories-realtime').on('postgres_changes', { event: '*', table: 'categories' }, () => fetchData()).subscribe(),
+      supabase.channel('visitors-realtime').on('postgres_changes', { event: '*', table: 'visitor_stats' }, () => fetchData()).subscribe(),
+    ];
 
     return () => {
-      supabase.removeChannel(ordersSubscription);
-      supabase.removeChannel(productsSubscription);
-      supabase.removeChannel(categoriesSubscription);
-      clearInterval(visitorInterval);
+      subscriptions.forEach(sub => supabase.removeChannel(sub));
     };
   }, [router, fetchData]);
 
@@ -186,6 +173,15 @@ export default function AdminPage() {
     const name = prompt('Nom de la nouvelle catégorie :');
     if (name) {
       const { error } = await supabase.from('categories').insert([{ name }]);
+      if (error) alert(error.message);
+      else fetchData();
+    }
+  };
+
+  const handleEditCategory = async (cat: Category) => {
+    const name = prompt('Nouveau nom de la catégorie :', cat.name);
+    if (name && name !== cat.name) {
+      const { error } = await supabase.from('categories').update({ name }).eq('id', cat.id);
       if (error) alert(error.message);
       else fetchData();
     }
@@ -340,17 +336,61 @@ export default function AdminPage() {
 
             {activeTab === 'categories' && (
               <motion.div key="categories" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
-                <SectionHeader title="Catégories" description="Gérez les collections de produits." actions={<button onClick={handleAddCategory} className="flex items-center gap-2 px-5 py-2.5 bg-white text-black font-bold rounded-2xl hover:bg-gray-200 transition-all shadow-lg active:scale-95"><Plus size={18} />Nouvelle Catégorie</button>} />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                   {categories.map((cat) => (
-                     <GlassCard key={cat.id} className="flex flex-col gap-4 group cursor-pointer hover:border-purple-500/30">
-                        <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform"><Layers size={24} /></div>
-                        <div><h4 className="text-xl font-bold">{cat.name}</h4></div>
-                        <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-white/40 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <SectionHeader
+                  title="Catégories"
+                  description="Gérez les collections et l'organisation des produits."
+                  actions={
+                    <button onClick={handleAddCategory} className="flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-2xl hover:bg-gray-200 transition-all shadow-[0_8px_30px_rgb(255,255,255,0.2)] active:scale-95">
+                      <Plus size={18} />
+                      Nouvelle Catégorie
+                    </button>
+                  }
+                />
+
+                <div className="grid grid-cols-1 gap-4">
+                  {categories.map((cat, i) => (
+                    <motion.div
+                      key={cat.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="group relative flex items-center justify-between p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-purple-500/30 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                          <Layers size={24} />
                         </div>
-                     </GlassCard>
-                   ))}
+                        <div>
+                          <h4 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors">{cat.name}</h4>
+                          <p className="text-white/20 text-xs font-medium uppercase tracking-[0.2em] mt-1">ID: #{cat.id.slice(0, 8)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                        <button
+                          onClick={() => handleEditCategory(cat)}
+                          className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(cat.id)}
+                          className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        <div className="p-3 text-white/10">
+                           <ChevronRight size={20} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {categories.length === 0 && (
+                    <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[32px]">
+                       <Layers size={48} className="mx-auto text-white/5 mb-4" />
+                       <p className="text-white/20 font-bold uppercase tracking-widest">Aucune catégorie</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

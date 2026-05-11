@@ -7,6 +7,8 @@ import { MobileCartDrawer } from '@/components/MobileCartDrawer';
 import { CartContent } from '@/components/CartContent';
 import { CheckoutTunnel, CheckoutContent } from '@/components/CheckoutTunnel';
 import { GlobalLoader } from '@/components/GlobalLoader';
+import { VisitorTracker } from '@/components/VisitorTracker';
+import { Suspense } from 'react';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { isCartOpen, setIsCartOpen, isCheckoutOpen, setIsCheckoutOpen } = useCartStore();
@@ -21,6 +23,10 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white w-full">
+      <Suspense fallback={null}>
+        <VisitorTracker />
+      </Suspense>
+
       <AnimatePresence mode="wait">
         {isLoading && <GlobalLoader key="loader" />}
       </AnimatePresence>
