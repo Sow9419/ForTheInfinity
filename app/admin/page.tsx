@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getProductImageUrl } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -180,14 +180,7 @@ export default function AdminPage() {
     else fetchData();
   };
 
-  const getImageUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http') || path.startsWith('data:')) return path;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product/${path}`;
-  };
-
   const revenueEvolution = useMemo(() => {
-    // Generate simplified trend data from orders
     if (orders.length === 0) return [10, 20, 15, 40, 30, 60, 50];
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -346,7 +339,7 @@ export default function AdminPage() {
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-white/5 overflow-hidden border border-white/10 flex items-center justify-center">
-                                  {product.image ? <img src={getImageUrl(product.image)} className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-white/20" />}
+                                  {product.image ? <img src={getProductImageUrl(product.image)} className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-white/20" />}
                                 </div>
                                 <div>
                                   <p className="font-bold text-white/90">{product.name}</p>
@@ -442,7 +435,7 @@ export default function AdminPage() {
                                            {order.order_items?.map((item: any) => (
                                              <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
                                                 <div className="w-12 h-12 rounded-lg bg-white/5 overflow-hidden">
-                                                   <img src={getImageUrl(item.products?.image)} className="w-full h-full object-cover" />
+                                                   <img src={getProductImageUrl(item.products?.image)} className="w-full h-full object-cover" />
                                                 </div>
                                                 <div className="flex-1">
                                                    <p className="text-sm font-bold">{item.products?.name}</p>
