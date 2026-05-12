@@ -24,7 +24,7 @@ export function ProductGallery({ images, title, activeImage, setActiveImage }: P
         <img
           src={images[activeImage]}
           alt={title.replace('\n', ' ')}
-          className="w-full h-full object-cover opacity-100 transition-opacity duration-500 ease-in-out"
+          className="w-full h-full object-scale-down opacity-100 transition-opacity duration-500 ease-in-out"
         />
 
         {/* Share Button */}

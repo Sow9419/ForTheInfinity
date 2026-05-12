@@ -73,7 +73,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                     exit={{ x: 20, opacity: 0 }}
                     className="absolute inset-0"
                   >
-                    <CheckoutContent onClose={() => setIsCheckoutOpen(false)} />
+                    <CheckoutContent onClose={() => setIsCheckoutOpen(false)} idForm="checkout-form-desktop" />
                   </motion.div>
                 )}
               </AnimatePresence>

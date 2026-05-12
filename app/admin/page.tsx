@@ -29,6 +29,7 @@ import { CategoryModal } from '@/components/admin/CategoryModal';
 import { KPICards } from '@/components/admin/sections/KPICards';
 import { ProductTable } from '@/components/admin/sections/ProductTable';
 import { OrderList } from '@/components/admin/sections/OrderList';
+import { ChartRadarDots } from '@/components/admin/sections/ChartRadar';
 
 // --- Types ---
 type Tab = 'dashboard' | 'products' | 'orders' | 'categories';
@@ -222,36 +223,50 @@ export default function AdminPage() {
   }, [orders, products, timeRange, kpis.visitorCount]);
 
   const revenueEvolution = useMemo(() => {
-    if (orders.length === 0) return [10, 20, 15, 40, 30, 60, 50];
-    
-    const count = timeRange === 'day' ? 7 : 12; // 7 heures ou 12 mois ? Non, 7 derniers jours ou 12 derniers mois.
+    const isSameDay = (d1: Date, d2: Date) => 
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate();
+
+    if (orders.length === 0) {
+      return [30, 45, 35, 60, 50, 80, 70].map((v, i) => ({ 
+        label: `J-${6-i}`, 
+        value: v, // Pour l'échelle du radar (fictif)
+        orders: Math.floor(v / 10), // Nombre de commandes fictif
+        revenue: v * 1000 // Revenu fictif
+      }));
+    }
     
     if (timeRange === 'day') {
       const last7Days = [...Array(7)].map((_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
-        const dayStr = d.toLocaleDateString();
-        const dayTotal = orders
-          .filter(o => new Date(o.created_at).toLocaleDateString() === dayStr)
-          .reduce((sum, o) => sum + Number(o.total), 0);
-        return dayTotal;
+        const dayOrders = orders.filter(o => isSameDay(new Date(o.created_at), d));
+        const dayTotal = dayOrders.reduce((sum, o) => sum + Number(o.total), 0);
+        return {
+          label: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
+          orders: dayOrders.length,
+          revenue: dayTotal,
+          value: dayOrders.length // On utilise le nombre de commandes pour l'échelle du radar
+        };
       });
-      const max = Math.max(...last7Days, 1);
-      return last7Days.map(v => (v / max) * 100);
+      return last7Days;
     } else {
-      // Vue par mois sur l'année en cours
       const currentYear = new Date().getFullYear();
       const months = [...Array(12)].map((_, i) => {
-        const monthTotal = orders
-          .filter(o => {
-            const d = new Date(o.created_at);
-            return d.getMonth() === i && d.getFullYear() === currentYear;
-          })
-          .reduce((sum, o) => sum + Number(o.total), 0);
-        return monthTotal;
+        const monthOrders = orders.filter(o => {
+          const d = new Date(o.created_at);
+          return d.getMonth() === i && d.getFullYear() === currentYear;
+        });
+        const monthTotal = monthOrders.reduce((sum, o) => sum + Number(o.total), 0);
+        return {
+          label: ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'][i],
+          orders: monthOrders.length,
+          revenue: monthTotal,
+          value: monthOrders.length
+        };
       });
-      const max = Math.max(...months, 1);
-      return months.map(v => (v / max) * 100);
+      return months;
     }
   }, [orders, timeRange]);
 
@@ -315,7 +330,7 @@ export default function AdminPage() {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col relative h-screen">
-        <header className="h-20 border-b border-white/5 bg-black/20 backdrop-blur-md px-6 lg:px-10 flex items-center justify-between z-40">
+        <header className="h-20 border-b border-white/5 bg-black backdrop-blur-md px-6 lg:px-10 flex items-center justify-between z-40">
           <div className="lg:hidden flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-purple-500 flex items-center justify-center font-bold">∞</div></div>
           <div className="flex-1 max-w-md hidden md:block">
             <div className="relative group">
@@ -366,23 +381,14 @@ export default function AdminPage() {
                 <KPICards kpis={filteredKpis} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <GlassCard className="lg:col-span-2 h-[400px] flex flex-col" delay={0.4}>
-                    <div className="flex items-center justify-between mb-6"><h3 className="text-lg font-bold">Flux de Revenu (7j)</h3></div>
-                    <div className="flex-1 flex items-end gap-3 pb-2 px-2">
-                       {revenueEvolution.map((h, i) => (
-                         <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                           <motion.div
-                            initial={{ height: 0 }} animate={{ height: `${Math.max(h, 5)}%` }} transition={{ duration: 1, delay: 0.6 + (i * 0.05) }}
-                            className="w-full bg-gradient-to-t from-purple-600/20 to-purple-500 rounded-t-lg lg:rounded-t-xl group-hover:from-purple-500 group-hover:to-purple-400 transition-all shadow-[0_0_20px_rgba(168,85,247,0.15)]"
-                           />
-                           <span className="text-[7px] lg:text-[9px] text-white/20 font-bold uppercase">
-                             {timeRange === 'day' ? `J-${6-i}` : ['J','F','M','A','M','J','J','A','S','O','N','D'][i]}
-                           </span>
-                         </div>
-                       ))}
-                    </div>
-                  </GlassCard>
-                  <GlassCard className="h-[400px] overflow-hidden flex flex-col relative" delay={0.5}>
+                  <div className="lg:col-span-2">
+                    <ChartRadarDots 
+                      data={revenueEvolution} 
+                      title={`Revenus (${timeRange === 'day' ? '7 derniers jours' : 'Année en cours'})`}
+                      description={`Analyse des revenus basés sur les commandes validées.`}
+                    />
+                  </div>
+                  <GlassCard className="h-full overflow-hidden flex flex-col relative" delay={0.5}>
                     <h3 className="text-lg font-bold mb-6 px-2">Commandes Récentes</h3>
                     <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar relative z-10">
                       {orders.slice(0, 8).map((order) => (
