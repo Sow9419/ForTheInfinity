@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Loader2, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getProductImageUrl } from '@/lib/supabase';
 import { Category } from '@/types';
 
 interface ProductModalProps {
@@ -109,8 +109,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, editingItem, categori
   };
 
   const getImageUrl = (path: string) => {
-    if (path.startsWith('http') || path.startsWith('data:')) return path;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product/${path}`;
+    return getProductImageUrl(path);
   };
 
   return (
