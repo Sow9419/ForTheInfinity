@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { PRODUCTS } from '@/lib/data';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCartStore } from '@/store/useCartStore';
+import { useProduct } from '@/hooks/use-product';
 
 // Components from detail-product
 import { ProductGallery } from "@/components/detail-product/ProductGallery";
@@ -22,66 +22,15 @@ export default function ProductPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [product, setProduct] = useState<any>(null);
+  const productId = params?.id as string;
+  const { product, loading: isLoading } = useProduct(productId);
+  
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  
+
   const { items } = useCartStore();
-  const cartItem = items.find(item => item.id === (params?.id as string));
-  const currentQuantity = cartItem ? cartItem.quantity : 1; // Par défaut 1 pour WhatsApp si pas dans panier
-
-  const productId = params?.id as string;
-
-  useEffect(() => {
-    if (!productId) {
-      setIsLoading(false);
-      return;
-    }
-
-    async function fetchProduct() {
-      try {
-        const response = await fetch('/api/products');
-        const products = await response.json();
-        const baseProduct = products.find((p: any) => p.id === productId);
-
-        if (baseProduct) {
-          const enrichedProduct = {
-            ...baseProduct,
-            brand: "Jokin Mode",
-            collection: baseProduct.subtitle || "Infinity Collection",
-            title: baseProduct.name,
-            currency: "FCFA",
-            images: baseProduct.images?.length > 0 ? baseProduct.images : (baseProduct.image ? [baseProduct.image] : []),
-            specs: [
-              { label: "Matière", value: "100% Coton Premium" },
-              { label: "Coupe", value: "Oversized Fit" },
-              { label: "Poids", value: "240 GSM" },
-              { label: "Entretien", value: "Lavage à froid" }
-            ],
-            description: {
-              short: baseProduct.shortDescription || "Pas de description disponible.",
-              extended: baseProduct.extendedDescription || ""
-            },
-            faqs: [
-              { question: "Quelle taille choisir ?", answer: "Nous recommandons votre taille habituelle pour un effet légèrement ample." },
-              { question: "Quels sont les délais de livraison ?", answer: "La livraison à Bamako s'effectue en 24h. Pour les autres villes du Mali et de la sous-région, comptez 2 à 5 jours ouvrés." },
-              { question: "Puis-je échanger un article ?", answer: "Oui, vous disposez de 48h après réception pour demander un échange si la taille ne vous convient pas (sous réserve de stock disponible)." },
-              { question: "Quels sont les modes de paiement ?", answer: "Nous acceptons les paiements en espèces à la livraison (Bamako) ainsi que les transferts Orange Money et Moov Money." },
-              { question: "Comment entretenir mon vêtement ?", answer: "Pour préserver la qualité du coton et de l'impression, nous conseillons un lavage à l'envers à 30°C et d'éviter le sèche-linge." }
-            ]
-          };
-          setProduct(enrichedProduct);
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchProduct();
-  }, [productId]);
+  const cartItem = items.find(item => item.id === productId);
+  const currentQuantity = cartItem ? cartItem.quantity : 1; 
 
   if (isLoading) return <ProductSkeleton />;
 
@@ -108,61 +57,75 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="min-h-screen md:h-screen w-full bg-white flex flex-col md:flex-row font-sans relative md:overflow-hidden">
-      
-      <FloatingWhatsApp 
-        productName={product.title} 
-        price={product.price} 
-        quantity={currentQuantity}
-        selectedSizes={selectedSizes}
-      />
+    <div className="min-h-screen md:h-screen w-full flex flex-col md:flex-row font-sans relative md:overflow-hidden bg-transparent overflow-x-hidden">
 
-      {/* Back Button */}
-      <button
-        onClick={() => router.push('/')}
-        className="flex absolute top-4 left-4 z-[60] bg-black/10 hover:bg-black/10 backdrop-blur-md p-3 rounded-full border border-white/20 transition-all group"
-      >
-        <ArrowLeft className="w-5 h-5 text-black group-hover:-translate-x-1 transition-transform" />
-      </button>
-
-      {/* Left Column: Media Gallery */}
-      <div className="w-full md:w-1/2 h-[70vh] md:h-full relative overflow-hidden bg-[#ECEEE5]">
-        <ProductGallery
-          images={product.images}
-          title={product.title}
-          activeImage={activeImage}
-          setActiveImage={setActiveImage}
+      {/* Background Visuel Riche (Image floue) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <img
+          src="/image1.png"
+          alt="Background flou"
+          className="w-full h-full object-cover opacity-60 scale-110"
         />
+        {/* Overlay blanc translucide pour l'effet light glass */}
+        <div className="absolute inset-0 backdrop-blur-xl bg-white/20" />
       </div>
 
-      {/* Right Column: Content */}
-      <div className="w-full bg-[#ECEEE5] md:w-1/2 flex-1 px-5 py-6 md:p-[40px] flex flex-col gap-6 md:gap-[25px] md:overflow-y-auto pb-[100px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+      <div className="relative z-10 flex flex-col md:flex-row w-full h-full">
 
-        <ProductDetails
-          collection={product.collection}
-          title={product.title}
+        <FloatingWhatsApp
+          productName={product.title}
           price={product.price}
-          currency={product.currency}
-          product={product}
+          quantity={currentQuantity}
           selectedSizes={selectedSizes}
-          onSizesChange={setSelectedSizes}
         />
 
-        <ProductSpecs specs={product.specs} />
+        {/* Back Button */}
+        <button
+          onClick={() => router.push('/')}
+          className="flex absolute top-4 left-4 z-[60] bg-white/40 hover:bg-white/60 backdrop-blur-md p-3 rounded-full border border-white/50 transition-all group shadow-sm"
+        >
+          <ArrowLeft className="w-5 h-5 text-black group-hover:-translate-x-1 transition-transform" />
+        </button>
 
-        <ProductDescription
-          shortDescription={product.description?.short}
-          extendedDescription={product.description?.extended}
+        {/* Left Column: Media Gallery */}
+        <div className="w-full md:w-1/2 h-[70vh] md:h-full relative overflow-hidden bg-none">
+          <ProductGallery
+            images={product.images}
+            title={product.title}
+            activeImage={activeImage}
+            setActiveImage={setActiveImage}
+          />
+        </div>
+
+        {/* Right Column: Content */}
+        <div className="w-full bg-white/30 backdrop-blur-md md:border-l border-white/40 shadow-[-10px_0_30px_rgba(0,0,0,0.03)] md:w-1/2 flex-1 px-5 py-6 md:p-[40px] flex flex-col gap-6 md:gap-[25px] md:overflow-y-auto pb-[100px] overflow-x-hidden">
+
+          <ProductDetails
+            collection={product.collection}
+            title={product.title}
+            price={product.price}
+            currency={product.currency}
+            product={product}
+            selectedSizes={selectedSizes}
+            onSizesChange={setSelectedSizes}
+          />
+
+          <ProductSpecs specs={product.specs} />
+
+          <ProductDescription
+            shortDescription={product.description?.short}
+            extendedDescription={product.description?.extended}
+          />
+
+          <FAQSection faqs={product.faqs} />
+        </div>
+
+        {/* Footer Action Bar */}
+        <FooterBar
+          product={product}
+          isDesktop={!isMobile}
         />
-
-        <FAQSection faqs={product.faqs} />
       </div>
-
-      {/* Footer Action Bar */}
-      <FooterBar
-        product={product}
-        isDesktop={!isMobile}
-      />
     </div>
   );
 }

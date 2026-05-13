@@ -17,9 +17,11 @@ interface OrderFormProps {
   setSuccess: (s: boolean) => void;
   onClearCart?: () => void;
   closeCheckout?: () => void;
+  showFooter?: boolean;
+  idForm?: string;
 }
 
-export function OrderForm({ items, totalPrice, product, quantity, success, setSuccess, onClearCart, closeCheckout }: OrderFormProps) {
+export function OrderForm({ items, totalPrice, product, quantity, success, setSuccess, onClearCart, closeCheckout, showFooter = true, idForm }: OrderFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -148,8 +150,8 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
   return (
     <div className="flex flex-col gap-6">
       {/* Résumé de commande */}
-      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Résumé de la commande</h4>
+      <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-4 ">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-100 mb-3">Résumé de la commande</h4>
         <div className="space-y-2 max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
           {finalItems.map((item, i) => (
             <div key={i} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0 last:pb-0">
@@ -162,7 +164,7 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
               {item.selectedSizes && item.selectedSizes.length > 0 && (
                 <div className="flex gap-1">
                   {item.selectedSizes.map((size: string) => (
-                    <span key={size} className="text-[8px] font-bold bg-black/5 text-gray-500 px-1.5 py-0.5 rounded-sm">
+                    <span key={size} className="text-[8px] font-bold bg-black/5 text-gray-100 px-1.5 py-0.5 rounded-sm">
                       {size}
                     </span>
                   ))}
@@ -171,31 +173,33 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
             </div>
           ))}
         </div>
-        <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
-          <span className="font-black text-xs uppercase">Total à payer</span>
-          <span className="font-black text-lg text-[#00C38A]">{finalTotal.toLocaleString('fr-FR')} FCFA</span>
-        </div>
+        {showFooter && (
+          <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
+            <span className="font-black text-xs uppercase">Total à payer</span>
+            <span className="font-black text-lg text-[#00C38A]">{finalTotal.toLocaleString('fr-FR')} FCFA</span>
+          </div>
+        )}
       </div>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form id={idForm} className="flex flex-col gap-4" onSubmit={handleSubmit}>
         {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl font-medium">{error}</div>}
 
         <div className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-wider text-gray-500 ml-1">Nom complet</Label>
-            <Input id="name" name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-gray-200 focus:ring-[#00D632] transition-all" />
+            <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Nom complet</Label>
+            <Input id="name" name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-white/50  border-2 bg-transparent focus:ring-[#00D632] transition-all" />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="phone" className="text-[11px] font-bold uppercase tracking-wider text-gray-500 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
+            <Label htmlFor="phone" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
             <div className="phone-input-container">
               <PhoneInput
                 defaultCountry="ml"
                 value={phone}
                 onChange={(phone) => setPhone(phone)}
-                inputClassName="w-full !h-12 !border-gray-200 !rounded-r-xl !text-[14px] !bg-white focus:!ring-2 focus:!ring-[#00D632] !transition-all"
+                inputClassName="w-full !h-12 !border-2 !border-white/50 !rounded-r-xl !text-[14px] !bg-transparent focus:!ring-2 focus:!ring-[#00D632] !transition-all"
                 countrySelectorStyleProps={{
-                  buttonClassName: "!h-12 !bg-gray-50 !border-gray-200 !rounded-l-xl hover:!bg-zinc-100 !px-3",
+                  buttonClassName: "!h-12 !bg-transparent !border-2 !border-white/50 !rounded-l-xl hover:!bg-zinc-100 !px-3",
                   dropdownArrowClassName: "opacity-50"
                 } as any}
               />
@@ -203,7 +207,7 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
           </div>
 
           <div className="flex flex-col gap-1.5 overflow-visible">
-            <Label htmlFor="address" className="text-[11px] font-bold uppercase tracking-wider text-gray-500 ml-1">Adresse de livraison (Optionnel)</Label>
+            <Label htmlFor="address" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Adresse de livraison (Optionnel)</Label>
             <AddressInput
               id="address"
               name="address"
@@ -211,9 +215,10 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
               onChange={setAddress}
               onCoordinatesChange={setCoordinates}
             />
-          </div>
         </div>
+      </div>
 
+      {showFooter && (
         <button
           disabled={isLoading}
           type="submit"
@@ -221,7 +226,8 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
         >
           {isLoading ? "Traitement..." : "Confirmer la commande"}
         </button>
-      </form>
+      )}
+    </form>
     </div>
   )
 }

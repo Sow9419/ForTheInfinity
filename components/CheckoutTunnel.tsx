@@ -4,60 +4,105 @@ import React from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { OrderForm } from './detail-product/OrderForm';
+import { motion } from 'motion/react';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
 } from "@/components/ui/sheet";
 
-export function CheckoutTunnel() {
-  const { isCheckoutOpen, setIsCheckoutOpen, items, totalPrice, clearCart } = useCartStore();
-  const isMobile = useIsMobile();
+import { X, ArrowRight, ShoppingBasket } from 'lucide-react';
+
+export function CheckoutContent({ onClose }: { onClose?: () => void }) {
+  const { items, totalPrice, clearCart, setIsCheckoutOpen } = useCartStore();
   const [isSuccess, setIsSuccess] = React.useState(false);
 
   const handleClear = () => {
     clearCart();
   };
 
-  const checkoutContent = (
-    <div className="flex flex-col gap-6">
-      <OrderForm 
-        items={items} 
-        totalPrice={totalPrice} 
-        success={isSuccess} 
-        setSuccess={setIsSuccess}
-        onClearCart={handleClear}
-        closeCheckout={() => setIsCheckoutOpen(false)}
-      />
+  return (
+    <div className="flex flex-col h-full w-full">
+      {/* HEADER (Fixe) */}
+      <div className="flex-none pt-4 px-6 md:px-10 border-b border-gray-200 md:border-white/10 pb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-black uppercase tracking-tight text-black md:text-white">
+          Finaliser ma commande
+        </h2>
+        {onClose && (
+          <button onClick={onClose} className="text-gray-500 hover:text-black md:text-white/60 md:hover:text-white">
+            <X size={24} />
+          </button>
+        )}
+      </div>
+
+      {/* MAIN (Scrollable) */}
+      <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-hide">
+        <div className="relative">
+          <OrderForm 
+            items={items} 
+            totalPrice={totalPrice} 
+            success={isSuccess} 
+            setSuccess={setIsSuccess}
+            onClearCart={handleClear}
+            closeCheckout={() => {
+              if (onClose) onClose();
+              else setIsCheckoutOpen(false);
+            }}
+            showFooter={false}
+            idForm="checkout-form"
+          />
+        </div>
+      </div>
+
+      {/* FOOTER (Fixe) */}
+      {!isSuccess && items.length > 0 && (
+        <div className="flex-none p-6 md:p-10 border-t border-gray-200 md:border-white/10">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-black text-[10px] uppercase tracking-widest text-gray-700 md:text-white/50">Total à payer</span>
+            <span className="font-black text-2xl text-black md:text-white">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+          </div>
+          <div className="pt-2 w-full">
+            <motion.button
+              form="checkout-form"
+              type="submit"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative w-full h-14 bg-white text-black md:bg-white md:text-black rounded-[1.5rem] font-black uppercase tracking-widest text-xs overflow-hidden shadow-xl"
+            >
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 md:via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <div className="relative z-10 flex items-center justify-center gap-3 w-full h-full">
+                <span>Confirmer la commande</span>
+                <motion.div 
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                >
+                  <ShoppingBasket className="w-4 h-4" strokeWidth={3} />
+                </motion.div>
+              </div>
+            </motion.button>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+export function CheckoutTunnel() {
+  const { isCheckoutOpen, setIsCheckoutOpen } = useCartStore();
+  const isMobile = useIsMobile();
+
+  // Sur Desktop, CheckoutContent est géré par ClientLayout
+  if (!isMobile) return null;
 
   return (
     <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-      <SheetContent 
-        side={isMobile ? "bottom" : "right"} 
-        className={`
-          ${isMobile ? "h-[90vh] rounded-t-[2rem] px-6 pb-20" : "w-[450px] sm:w-[540px] px-10 pb-10"} 
-          border-none bg-[#ECEEE5] overflow-y-auto scrollbar-hide shadow-2xl transition-all duration-500
-        `}
+      <SheetContent
+        side="bottom"
+        className="h-[90vh] rounded-t-[2rem] border-none bg-black/10 backdrop-blur-2xl flex flex-col p-0 overflow-hidden shadow-2xl transition-all duration-500"
       >
-        {/* Indicateur de glissement (Handle) - Visible surtout sur mobile */}
-        {isMobile && (
-          <div className="w-full flex justify-center pt-3 pb-6">
-            <div className="w-12 h-1.5 bg-black/10 rounded-full" />
-          </div>
-        )}
-
-        <SheetHeader className={isMobile ? "mb-6" : "mt-10 mb-8"}>
-          <SheetTitle className="text-2xl font-black uppercase tracking-tight text-center md:text-left">
-            Finaliser ma commande
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="relative">
-          {checkoutContent}
+        <div className="w-full flex justify-center pt-4 pb-2">
+          <div className="w-12 h-1.5 bg-black/20 rounded-full" />
         </div>
+        <CheckoutContent />
       </SheetContent>
     </Sheet>
   );

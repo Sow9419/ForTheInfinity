@@ -63,7 +63,7 @@ export function AddressInput({ id = "address", name = "address", required, value
     const addressStr = [props.name, props.street, props.city, props.country]
       .filter(Boolean)
       .join(', ');
-    
+
     onChange(addressStr);
     setShowDropdown(false);
 
@@ -121,29 +121,29 @@ export function AddressInput({ id = "address", name = "address", required, value
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <div className="relative flex items-center w-full">
-        <Input 
-          id={id} 
-          name={name} 
-          required={required} 
+        <Input
+          id={id}
+          name={name}
+          required={required}
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
             setShowDropdown(true);
             if (onCoordinatesChange) onCoordinatesChange(null); // Reset coords if manually changed
           }}
-          placeholder="Ex: Bamako, ACI 2000..." 
-          className="h-12 rounded-xl border-gray-200 focus:ring-[#00D632] transition-all pr-12 w-full" 
+          placeholder="Ex: Bamako, ACI 2000..."
+          className="h-12 rounded-xl border-white/50 border-2 bg-transparent focus:ring-[#00D632] transition-all pr-12 w-full"
           autoComplete="off"
         />
         <button
           type="button"
           onClick={handleGPSLocation}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-[#00D632]/20 hover:text-[#00D632] transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg bg-white/60 hover:bg-[#00D632]/20 hover:text-[#00D632] transition-colors"
           title="Utiliser ma position GPS"
           disabled={isLocating}
         >
           {isLocating ? (
-             <div className="w-4 h-4 border-2 border-[#00D632] border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[#00D632] border-t-transparent rounded-full animate-spin" />
           ) : (
             <Navigation className="w-4 h-4 text-gray-500 hover:text-[#00D632] transition-colors" />
           )}

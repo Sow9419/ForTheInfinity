@@ -1,6 +1,6 @@
 // types.ts
 export interface Product {
-  id: string; // Airtable Record ID
+  id: string; // Supabase ID
   name: string;
   subtitle: string;
   price: number;

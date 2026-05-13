@@ -3,7 +3,6 @@
 import React from 'react';
 import { ArrowRight, Eye, MessageCircle, ShoppingBag, Star } from 'lucide-react';
 import { useShopStore } from '../store/useShopStore';
-import { PRODUCTS } from '../lib/data';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
 import { getWhatsAppUrl } from '@/lib/utils';

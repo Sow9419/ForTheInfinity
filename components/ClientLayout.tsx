@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/store/useCartStore';
 import { MobileCartDrawer } from '@/components/MobileCartDrawer';
 import { CartContent } from '@/components/CartContent';
-import { CheckoutTunnel } from '@/components/CheckoutTunnel';
+import { CheckoutTunnel, CheckoutContent } from '@/components/CheckoutTunnel';
 import { GlobalLoader } from '@/components/GlobalLoader';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { isCartOpen, setIsCartOpen } = useCartStore();
+  const { isCartOpen, setIsCartOpen, isCheckoutOpen, setIsCheckoutOpen } = useCartStore();
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -35,19 +35,42 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         <CheckoutTunnel />
       </div>
 
-      {/* Panier Desktop — Split View fixe sur la droite */}
-      <AnimatePresence>
-        {isCartOpen && (
+      {/* Panier Desktop / Checkout Desktop — Split View fixe sur la droite */}
+      <AnimatePresence mode="wait">
+        {(isCartOpen || isCheckoutOpen) && (
           <motion.div
-            key="desktop-cart"
+            key="desktop-panel"
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 450, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="hidden md:block h-full flex-shrink-0 border-l border-gray-100 bg-white z-50 overflow-hidden"
+            className="hidden md:block h-full flex-shrink-0 border-l border-white/10 bg-black/30 backdrop-blur-2xl z-50 overflow-hidden"
           >
             <div className="w-[450px] h-full relative">
-              <CartContent onClose={() => setIsCartOpen(false)} />
+              <AnimatePresence mode="wait">
+                {isCartOpen && (
+                  <motion.div 
+                    key="cart-view"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    className="absolute inset-0"
+                  >
+                    <CartContent onClose={() => setIsCartOpen(false)} />
+                  </motion.div>
+                )}
+                {isCheckoutOpen && !isCartOpen && (
+                  <motion.div 
+                    key="checkout-view"
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 20, opacity: 0 }}
+                    className="absolute inset-0"
+                  >
+                    <CheckoutContent onClose={() => setIsCheckoutOpen(false)} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
