@@ -27,11 +27,11 @@ export function GlobalLoader() {
           className="mt-8 flex flex-col items-center gap-2"
         >
           <h2 className="text-white font-black text-2xl uppercase tracking-[0.3em] ml-1">
-            ForTheInfinity
+            4TheInfinity
           </h2>
           <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
           <p className="text-white/40 text-[10px] uppercase tracking-[0.5em] mt-2 font-light">
-            Luxury Minimalist
+            Loyalty & Minimalist
           </p>
         </motion.div>
       </div>
