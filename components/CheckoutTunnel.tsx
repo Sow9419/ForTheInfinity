@@ -10,11 +10,12 @@ import {
   SheetContent,
 } from "@/components/ui/sheet";
 
-import { X, ArrowRight, ShoppingBasket } from 'lucide-react';
+import { X, ArrowRight, ShoppingBasket, Loader2 } from 'lucide-react';
 
-export function CheckoutContent({ onClose }: { onClose?: () => void }) {
+export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose?: () => void, idForm?: string }) {
   const { items, totalPrice, clearCart, setIsCheckoutOpen } = useCartStore();
   const [isSuccess, setIsSuccess] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleClear = () => {
     clearCart();
@@ -43,12 +44,13 @@ export function CheckoutContent({ onClose }: { onClose?: () => void }) {
             success={isSuccess} 
             setSuccess={setIsSuccess}
             onClearCart={handleClear}
+            onLoadingChange={setIsLoading}
             closeCheckout={() => {
               if (onClose) onClose();
               else setIsCheckoutOpen(false);
             }}
             showFooter={false}
-            idForm="checkout-form"
+            idForm={idForm}
           />
         </div>
       </div>
@@ -62,21 +64,38 @@ export function CheckoutContent({ onClose }: { onClose?: () => void }) {
           </div>
           <div className="pt-2 w-full">
             <motion.button
-              form="checkout-form"
+              form={idForm}
               type="submit"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              className="group relative w-full h-14 bg-white text-black md:bg-white md:text-black rounded-[1.5rem] font-black uppercase tracking-widest text-xs overflow-hidden shadow-xl"
+              disabled={isLoading}
+              whileHover={isLoading ? {} : { scale: 1.01 }}
+              whileTap={isLoading ? {} : { scale: 0.98 }}
+              className={`group relative w-full h-14 rounded-[1.5rem] font-black uppercase tracking-widest text-xs overflow-hidden shadow-xl transition-all duration-300 ${
+                isLoading 
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                  : "bg-white text-black md:bg-white md:text-black"
+              }`}
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 md:via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              {!isLoading && (
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 md:via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              )}
+              
               <div className="relative z-10 flex items-center justify-center gap-3 w-full h-full">
-                <span>Confirmer la commande</span>
-                <motion.div 
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                >
-                  <ShoppingBasket className="w-4 h-4" strokeWidth={3} />
-                </motion.div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Traitement en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirmer la commande</span>
+                    <motion.div 
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                    >
+                      <ShoppingBasket className="w-4 h-4" strokeWidth={3} />
+                    </motion.div>
+                  </>
+                )}
               </div>
             </motion.button>
           </div>
@@ -102,7 +121,7 @@ export function CheckoutTunnel() {
         <div className="w-full flex justify-center pt-4 pb-2">
           <div className="w-12 h-1.5 bg-black/20 rounded-full" />
         </div>
-        <CheckoutContent />
+        <CheckoutContent idForm="checkout-form-mobile" />
       </SheetContent>
     </Sheet>
   );

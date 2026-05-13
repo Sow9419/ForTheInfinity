@@ -19,9 +19,10 @@ interface OrderFormProps {
   closeCheckout?: () => void;
   showFooter?: boolean;
   idForm?: string;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
-export function OrderForm({ items, totalPrice, product, quantity, success, setSuccess, onClearCart, closeCheckout, showFooter = true, idForm }: OrderFormProps) {
+export function OrderForm({ items, totalPrice, product, quantity, success, setSuccess, onClearCart, closeCheckout, showFooter = true, idForm, onLoadingChange }: OrderFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +30,11 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState<{ lat: number, lon: number } | null>(null);
   const [orderSummaryData, setOrderSummaryData] = useState<any>(null);
+
+  // Sync internal loading state to parent
+  React.useEffect(() => {
+    if (onLoadingChange) onLoadingChange(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   const finalItems = items || (product ? [{ ...product, quantity }] : []);
   const finalTotal = totalPrice || (product ? product.price * (quantity || 1) : 0);
@@ -109,7 +115,7 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
       text += `\n*💰 Total : ${orderSummaryData.total.toLocaleString('fr-FR')} FCFA*`;
 
       // Numéro cible provisoire (à configurer par le client)
-      const targetPhone = "22394231914"; // EXEMPLE DE NUMERO
+      const targetPhone = "22376727121"; // EXEMPLE DE NUMERO
       return `https://wa.me/${targetPhone}?text=${encodeURIComponent(text)}`;
     };
 
@@ -186,17 +192,21 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
 
         <div className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Nom complet</Label>
-            <Input id="name" name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-white/50  border-2 bg-transparent focus:ring-[#00D632] transition-all" />
+            <Label htmlFor={`${idForm}-name`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Nom complet</Label>
+            <Input id={`${idForm}-name`} name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-white/50 border-2 bg-transparent focus:ring-2 focus:ring-[#00D632] focus:ring-offset-0 transition-all" />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="phone" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
+            <Label htmlFor={`${idForm}-phone`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
             <div className="phone-input-container">
               <PhoneInput
                 defaultCountry="ml"
                 value={phone}
                 onChange={(phone) => setPhone(phone)}
+                inputProps={{
+                  id: `${idForm}-phone`,
+                  required: true,
+                }}
                 inputClassName="w-full !h-12 !border-2 !border-white/50 !rounded-r-xl !text-[14px] !bg-transparent focus:!ring-2 focus:!ring-[#00D632] !transition-all"
                 countrySelectorStyleProps={{
                   buttonClassName: "!h-12 !bg-transparent !border-2 !border-white/50 !rounded-l-xl hover:!bg-zinc-100 !px-3",
@@ -207,27 +217,27 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
           </div>
 
           <div className="flex flex-col gap-1.5 overflow-visible">
-            <Label htmlFor="address" className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Adresse de livraison (Optionnel)</Label>
+            <Label htmlFor={`${idForm}-address`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Adresse de livraison (Optionnel)</Label>
             <AddressInput
-              id="address"
+              id={`${idForm}-address`}
               name="address"
               value={address}
               onChange={setAddress}
               onCoordinatesChange={setCoordinates}
             />
+          </div>
         </div>
-      </div>
 
-      {showFooter && (
-        <button
-          disabled={isLoading}
-          type="submit"
-          className="mt-6 w-full h-14 bg-[#00D632] text-black rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#00e836] shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {isLoading ? "Traitement..." : "Confirmer la commande"}
-        </button>
-      )}
-    </form>
+        {showFooter && (
+          <button
+            disabled={isLoading}
+            type="submit"
+            className="mt-6 w-full h-14 bg-[#00D632] text-black rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#00e836] shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            {isLoading ? "Traitement..." : "Confirmer la commande"}
+          </button>
+        )}
+      </form>
     </div>
   )
 }

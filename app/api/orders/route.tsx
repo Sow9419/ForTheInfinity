@@ -57,7 +57,7 @@ export async function POST(request: Request) {
         items,
         total
       });
-      
+
       const { data, error: sendError } = await resend.emails.send({
         from: 'onboarding@resend.dev',
         to: 'dramanesow20@gmail.com',

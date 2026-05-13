@@ -47,14 +47,14 @@ export function Header() {
       {/* Logo */}
       <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-white/20">
         <h1 className="text-lg sm:text-xl font-black text-white tracking-tighter uppercase cursor-pointer">
-          Forthe<span className="font-light opacity-80">Infinity</span>
+          4THE<span className="font-light opacity-80">INFINITY</span>
         </h1>
       </div>
 
       {/* Navigation Mobile & Desktop */}
       <nav className="flex items-center gap-2 sm:gap-3">
         <div className="flex items-center gap-1 bg-white/5 backdrop-blur-md p-1 sm:p-1.5 rounded-full border border-white/10">
-          <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all text-white">
+          <a href="https://www.tiktok.com/@4the_infinity?_r=1&_t=ZS-96JM6Yn3uvk" target="_blank" rel="noopener noreferrer" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all text-white">
             <svg className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.04-.1z" />
             </svg>

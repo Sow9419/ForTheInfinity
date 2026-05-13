@@ -6,9 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getWhatsAppUrl(productName?: string, price?: number) {
-  const phone = "22394231914";
+  const phone = "22376727121";
   const baseUrl = `https://wa.me/${phone}`;
-  
+
   if (!productName) {
     return `${baseUrl}?text=${encodeURIComponent("Bonjour Infinity, je souhaiterais avoir plus d'informations sur vos collections.")}`;
   }
