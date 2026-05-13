@@ -90,8 +90,8 @@ export function ProductDetails({
               ))
             )}
           </div>
-          <span className="text-[13px] md:text-[14px] font-medium md:font-normal text-gray-600 md:text-[#666]">
-            {product.rating?.toFixed(1) || 0} <span className="text-[#3B82F6] md:text-[#666] font-normal md:font-bold">({(product.reviewsCount || 0).toLocaleString('en-US')} reviews)</span>
+          <span className="text-[13px] md:text-[14px] font-medium text-gray-600">
+            {product.rating?.toFixed(1) || "5.0"} <span className="text-purple-600 font-bold">({(product.reviewsCount || 0).toLocaleString('fr-FR')} avis vérifiés)</span>
           </span>
         </div>
       </div>

@@ -89,17 +89,20 @@ export function HeroSection() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex items-center justify-center md:justify-start gap-4 w-full md:w-auto"
           >
-            <div className="flex flex-col items-center md:items-start gap-0.5">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-3.5 h-3.5 ${i < Math.round(activeHeroProduct.rating || 5) ? 'fill-[#FBBF24] text-[#FBBF24]' : 'fill-white/20 text-white/20'}`}
-                  />
-                ))}
+            <div className="flex flex-col items-center md:items-start gap-1">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${i < Math.round(activeHeroProduct.rating || 5) ? 'fill-[#FBBF24] text-[#FBBF24]' : 'fill-white/20 text-white/20'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-white font-bold text-xs">{activeHeroProduct.rating?.toFixed(1) || "5.0"}</span>
               </div>
-              <span className="text-white/50 text-[9px] uppercase tracking-widest font-medium">
-                {(activeHeroProduct.reviewsCount || 0).toLocaleString()} avis
+              <span className="text-white/50 text-[9px] uppercase tracking-widest font-black">
+                {(activeHeroProduct.reviewsCount || 0).toLocaleString()} avis vérifiés
               </span>
             </div>
 

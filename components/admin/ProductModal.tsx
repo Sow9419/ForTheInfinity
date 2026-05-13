@@ -89,6 +89,8 @@ export function ProductModal({ isOpen, onClose, onSuccess, editingItem, categori
         images: allImages,
         short_description: data.short_description as string,
         extended_description: data.extended_description as string,
+        rating: Number(data.rating) || 5,
+        reviews_count: Number(data.reviews_count) || 0,
       };
 
       if (editingItem) {
@@ -208,6 +210,14 @@ export function ProductModal({ isOpen, onClose, onSuccess, editingItem, categori
                     <option value="" className="bg-[#0A0A0A]">Sélectionner</option>
                     {categories.map(c => <option key={c.id} value={c.id} className="bg-[#0A0A0A]">{c.name}</option>)}
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-white/30 uppercase tracking-[0.2em] ml-2">Note (0-5)</label>
+                  <input name="rating" type="number" step="0.1" min="0" max="5" defaultValue={editingItem?.rating || 5} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-purple-500 transition-all font-bold tabular-nums" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-white/30 uppercase tracking-[0.2em] ml-2">Nombre d'avis</label>
+                  <input name="reviews_count" type="number" defaultValue={editingItem?.reviews_count || 0} className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-purple-500 transition-all font-bold tabular-nums" />
                 </div>
               </div>
 
