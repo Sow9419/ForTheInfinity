@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { Product } from '../types';
-import { PRODUCTS } from '../lib/data';
 
 interface ShopStore {
   activeCategory: string;
