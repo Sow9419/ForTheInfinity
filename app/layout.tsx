@@ -10,8 +10,11 @@ const roboto = Roboto({weight: ['300', '400', '500', '700'], subsets:['latin'],v
 const cormorant = Cormorant_Garamond({weight: ['300', '400', '600', '700'], style: ['normal', 'italic'], subsets:['latin'],variable:'--font-cormorant'});
 
 export const metadata: Metadata = {
-  title: 'Jokin Mode | E-commerce',
+  title: 'For The Infinity | E-commerce',
   description: 'Une application e-commerce moderne et performante.',
+  icons: {
+    icon: '/Favicon.jpeg',
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
