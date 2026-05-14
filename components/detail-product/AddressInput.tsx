@@ -132,7 +132,7 @@ export function AddressInput({ id = "address", name = "address", required, value
             if (onCoordinatesChange) onCoordinatesChange(null); // Reset coords if manually changed
           }}
           placeholder="Ex: Bamako, ACI 2000..."
-          className="h-12 rounded-xl border-white/50 border-2 bg-transparent focus:ring-2 focus:ring-[#00D632] focus:ring-offset-0 transition-all pr-12 w-full"
+          className="h-12 rounded-xl border-white/10 border-2 bg-white/10 text-gray-100 focus:ring-2 focus:ring-[#00D632] focus:ring-offset-0 transition-all pr-12 w-full"
           autoComplete="off"
         />
         <button

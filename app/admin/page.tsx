@@ -147,7 +147,13 @@ export default function AdminPage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      
+      if (!session) {
+        router.push('/authentification');
+        return;
+      }
+
+      setUser(session.user);
       await fetchData();
       setLoading(false);
     };

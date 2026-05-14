@@ -226,7 +226,7 @@ export function SignInCard({ onSignIn, isLoading: externalLoading }: SignInCardP
                     transition={{ delay: 0.2 }}
                     className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80"
                   >
-                    Administration
+                    Administration LOYALTY
                   </motion.h1>
 
                   <motion.p
@@ -235,7 +235,7 @@ export function SignInCard({ onSignIn, isLoading: externalLoading }: SignInCardP
                     transition={{ delay: 0.3 }}
                     className="text-white/60 text-sm"
                   >
-                    Connectez-vous pour gérer votre boutique
+                    Connectez-vous pour gérer votre boutique LOYALTY
                   </motion.p>
                 </div>
 

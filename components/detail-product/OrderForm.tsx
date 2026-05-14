@@ -162,15 +162,15 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
           {finalItems.map((item, i) => (
             <div key={i} className="flex flex-col gap-1 border-b border-gray-100 pb-2 last:border-0 last:pb-0">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-600 font-medium">
+                <span className="text-gray-300 font-medium">
                   {item.quantity}x {item.name || item.title}
                 </span>
-                <span className="font-bold">{(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</span>
+                <span className="font-bold text-gray-100">{(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</span>
               </div>
               {item.selectedSizes && item.selectedSizes.length > 0 && (
                 <div className="flex gap-1">
                   {item.selectedSizes.map((size: string) => (
-                    <span key={size} className="text-[8px] font-bold bg-black/5 text-gray-100 px-1.5 py-0.5 rounded-sm">
+                    <span key={size} className="text-[8px] font-bold bg-white/20 text-gray-100 px-1.5 py-0.5 rounded-sm">
                       {size}
                     </span>
                   ))}
@@ -192,12 +192,12 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
 
         <div className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`${idForm}-name`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Nom complet</Label>
-            <Input id={`${idForm}-name`} name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-white/50 border-2 bg-transparent focus:ring-2 focus:ring-[#00D632] focus:ring-offset-0 transition-all" />
+            <Label htmlFor={`${idForm}-name`} className="text-[11px] font-bold uppercase tracking-wider text-gray-100 ml-1">Nom complet</Label>
+            <Input id={`${idForm}-name`} name="name" required placeholder="Ex: Jean Dupont" className="h-12 rounded-xl border-white/10 border-2 bg-white/10 focus:ring-2 focus:ring-[#00D632] focus:ring-offset-0 transition-all text-gray-100" />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`${idForm}-phone`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
+            <Label htmlFor={`${idForm}-phone`} className="text-[11px] font-bold uppercase tracking-wider text-gray-100 ml-1">N° de téléphone <span className="text-red-500">*</span></Label>
             <div className="phone-input-container">
               <PhoneInput
                 defaultCountry="ml"
@@ -207,17 +207,17 @@ export function OrderForm({ items, totalPrice, product, quantity, success, setSu
                   id: `${idForm}-phone`,
                   required: true,
                 }}
-                inputClassName="w-full !h-12 !border-2 !border-white/50 !rounded-r-xl !text-[14px] !bg-transparent focus:!ring-2 focus:!ring-[#00D632] !transition-all"
+                inputClassName="w-full !h-12 !border-2 !border-white/10 !rounded-r-xl !text-[14px] !bg-white/10 !text-white focus:!ring-2 focus:!ring-[#00D632] !transition-all"
                 countrySelectorStyleProps={{
-                  buttonClassName: "!h-12 !bg-transparent !border-2 !border-white/50 !rounded-l-xl hover:!bg-zinc-100 !px-3",
-                  dropdownArrowClassName: "opacity-50"
+                  buttonClassName: "!h-12 !bg-white/10 !border-2 !border-white/10 !rounded-l-xl hover:!bg-white/20 !px-3",
+                  dropdownArrowClassName: "opacity-50 !text-white"
                 } as any}
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5 overflow-visible">
-            <Label htmlFor={`${idForm}-address`} className="text-[11px] font-bold uppercase tracking-wider text-gray-800 ml-1">Adresse de livraison (Optionnel)</Label>
+            <Label htmlFor={`${idForm}-address`} className="text-[11px] font-bold uppercase tracking-wider text-gray-100 ml-1">Adresse de livraison (Optionnel)</Label>
             <AddressInput
               id={`${idForm}-address`}
               name="address"
