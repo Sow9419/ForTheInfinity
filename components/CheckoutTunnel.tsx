@@ -25,11 +25,11 @@ export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose
     <div className="flex flex-col h-full w-full">
       {/* HEADER (Fixe) */}
       <div className="flex-none pt-4 px-6 md:px-10 border-b border-gray-200 md:border-white/10 pb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-black uppercase tracking-tight text-black md:text-white">
+        <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-white">
           Finaliser ma commande
         </h2>
         {onClose && (
-          <button onClick={onClose} className="text-gray-500 hover:text-black md:text-white/60 md:hover:text-white">
+          <button onClick={onClose} className="text-gray-100 hover:text-black md:text-white/60 md:hover:text-white">
             <X size={24} />
           </button>
         )}
@@ -59,8 +59,8 @@ export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose
       {!isSuccess && items.length > 0 && (
         <div className="flex-none p-6 md:p-10 border-t border-gray-200 md:border-white/10">
           <div className="flex justify-between items-center mb-4">
-            <span className="font-black text-[10px] uppercase tracking-widest text-gray-700 md:text-white/50">Total à payer</span>
-            <span className="font-black text-2xl text-black md:text-white">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+            <span className="font-black text-[10px] uppercase tracking-widest text-gray-200 md:text-white/50">Total à payer</span>
+            <span className="font-black text-2xl text-white md:text-white">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
           </div>
           <div className="pt-2 w-full">
             <motion.button
@@ -116,10 +116,10 @@ export function CheckoutTunnel() {
     <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
       <SheetContent
         side="bottom"
-        className="h-[90vh] rounded-t-[2rem] border-none bg-black/10 backdrop-blur-2xl flex flex-col p-0 overflow-hidden shadow-2xl transition-all duration-500"
+        className="h-[90vh] rounded-t-[2rem] border-none bg-black/30 backdrop-blur-2xl flex flex-col p-0 overflow-hidden shadow-2xl transition-all duration-500"
       >
         <div className="w-full flex justify-center pt-4 pb-2">
-          <div className="w-12 h-1.5 bg-black/20 rounded-full" />
+          <div className="w-12 h-1.5 bg-white rounded-full" />
         </div>
         <CheckoutContent idForm="checkout-form-mobile" />
       </SheetContent>
