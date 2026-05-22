@@ -42,7 +42,7 @@ export function HeroSection() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
-            className="absolute inset-0 bg-scale-down bg-center bg-[#f7f7dd]"
+            className="absolute inset-0 object-cover bg-center bg-[#f7f7dd]"
             style={{ backgroundImage: `url('${activeHeroProduct.image}')` }}
           />
         </AnimatePresence>
