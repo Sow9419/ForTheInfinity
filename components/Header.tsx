@@ -48,7 +48,7 @@ export function Header() {
       <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-xl px-2.5 py-1.5 rounded-full border border-white/20 group cursor-pointer transition-all hover:bg-white/15">
         <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center p-0.5 shrink-0 shadow-sm transition-transform duration-500 group-hover:rotate-12">
           <img
-            src="/logo.png"
+            src="/logo-4ti.png"
             alt="Infinity Logo"
             className="w-full h-full object-contain"
           />

@@ -5,13 +5,13 @@ import { motion } from 'motion/react';
 
 /**
  * Splash de chargement — fond blanc dégradé + logo officiel
- * (logo: remplacer le fichier public/logo.png par le dernier logo 4TI)
+ * (logo: remplacer le fichier public/logo-4ti.png par le dernier logo 4TI)
  */
 export function BrandLoader({ className = '' }: { className?: string }) {
   return (
     <div className={`flex flex-col items-center justify-center h-full w-full bg-gradient-to-b from-white via-[#F8F7F2] to-[#ECEAE0] ${className}`}>
       <motion.img
-        src="/logo.png"
+        src="/logo-4ti.png"
         alt="4TheInfinity"
         className="h-28 md:h-40 w-auto object-contain"
         initial={{ opacity: 0, scale: 0.85 }}

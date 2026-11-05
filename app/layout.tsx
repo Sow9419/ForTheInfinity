@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   description: 'Une application e-commerce moderne et performante.',
   icons: {
     icon: [
-      { url: '/favicon-256.png', type: 'image/png', sizes: '256x256' },
-      { url: '/favicon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/favicon-4ti-256.png', type: 'image/png', sizes: '256x256' },
+      { url: '/favicon-4ti-512.png', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: '/favicon-256.png',
-    apple: '/favicon-256.png',
+    shortcut: '/favicon-4ti-256.png',
+    apple: '/favicon-4ti-256.png',
   },
 };
 

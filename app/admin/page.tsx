@@ -413,7 +413,7 @@ export default function AdminPage() {
       <aside className="hidden lg:flex w-[92px] shrink-0 flex-col items-center pt-6 pb-5 z-50 relative">
         {/* Logo */}
         <div className="w-12 h-12 rounded-full bg-white shadow-[0_10px_28px_-12px_rgba(20,18,12,0.35)] flex items-center justify-center border border-black/[0.04] transition-transform hover:scale-105 duration-300">
-          <img src="/logo.png" alt="4TheInfinity" className="h-6 w-6 object-contain" />
+          <img src="/logo-4ti.png" alt="4TheInfinity" className="h-6 w-6 object-contain" />
         </div>
 
         <div className="w-8 h-px bg-black/[0.07] mt-5 mb-5" />
@@ -477,7 +477,7 @@ export default function AdminPage() {
           {/* Barre supérieure — dans le panneau */}
           <header className="h-[74px] shrink-0 flex items-center justify-between px-6 lg:px-9 border-b border-black/[0.05]">
             <div className="lg:hidden flex items-center gap-2.5">
-              <img src="/logo.png" alt="4TheInfinity" className="h-7 w-auto object-contain" />
+              <img src="/logo-4ti.png" alt="4TheInfinity" className="h-7 w-auto object-contain" />
             </div>
             <div className="hidden lg:flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-neutral-900/80" />
