@@ -26,6 +26,7 @@ const itemVariants = {
 };
 
 import { useProducts } from '@/hooks/use-products';
+import { getEffectivePrice } from '@/store/useCartStore';
 
 export function ProductGrid() {
   const { activeCategory } = useShopStore();
@@ -68,15 +69,26 @@ export function ProductGrid() {
         >
           <div className="p-2 md:p-4 flex flex-col gap-2 md:gap-4 h-full">
             {/* Zone cliquable vers la page détail */}
-            <Link href={`/product/${product.id}`} className="flex flex-col gap-2 md:gap-3 cursor-pointer flex-1">
-              <div className="text-center px-1">
-                <h3 className="font-roboto font-bold text-sm md:text-base lg:text-lg text-white mb-0.5 leading-tight tracking-tight line-clamp-1">
-                  {product.name}
-                </h3>
-                <p className="font-roboto font-light text-[10px] md:text-xs text-gray-200 uppercase tracking-widest line-clamp-1">
-                  {product.subtitle}
-                </p>
-              </div>
+            <Link href={`/product/${product.id}`} className="flex flex-col gap-2 md:gap-3 cursor-pointer flex-1 relative">
+              {/* Badge ÉPUISÉ */}
+              {product.inStock === false && (
+                <span className="absolute top-2 left-2 z-20 px-2 py-1 bg-black/85 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-lg">
+                  Épuisé
+                </span>
+              )}
+              {/* Badge PROMO */}
+              {product.inStock !== false && product.promoPrice != null && product.promoPrice < product.price && (
+                <span className="absolute top-2 left-2 z-20 px-2 py-1 bg-indigo-50 text-orange-400 text-[9px] font-black uppercase tracking-widest rounded-md shadow-none">
+                  Promo
+                </span>
+              )}
+              {/* Statut liquid glass — haut droite (Limité prioritaire, jamais les deux) */}
+              {(product.isLimited || product.isNew) && (
+                <span className="absolute top-2 right-2 z-20 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-full text-blue-600 border border-white/25 bg-black/[0.12] backdrop-blur-md shadow-none">
+                  {product.isLimited ? 'Limité' : 'Nouveau'}
+                </span>
+              )}
+              
 
               <div className="rounded-xl overflow-hidden relative aspect-square">
                 {product.image && (
@@ -85,22 +97,43 @@ export function ProductGrid() {
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${product.inStock === false ? 'grayscale opacity-60' : ''}`}
                     referrerPolicy="no-referrer"
                   />
                 )}
+              </div>
+              <div className="text-center px-1">
+                <h3 className="font-roboto font-bold text-sm md:text-base lg:text-lg text-white mb-0.5 leading-tight tracking-tight line-clamp-1">
+                  {product.name}
+                </h3>
+                <p className="font-roboto font-light text-[10px] md:text-xs text-gray-200 uppercase tracking-widest line-clamp-1">
+                  {product.subtitle}
+                </p>
               </div>
             </Link>
 
             {/* Zone Bas : Prix et Bouton */}
             <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
-              <p className="font-roboto font-black text-xs md:text-base lg:text-lg text-white">
-                {product.price.toLocaleString('fr-FR')} <span className="text-[8px] md:text-[10px] font-normal text-white/50">FCFA</span>
-              </p>
+              {product.inStock !== false && product.promoPrice != null && product.promoPrice < product.price ? (
+                <div className="flex flex-col leading-none">
+                  <span className="text-[9px] md:text-[10px] text-white/40 line-through">
+                    {product.price.toLocaleString('fr-FR')}
+                  </span>
+                  <p className="font-roboto font-black text-xs md:text-base lg:text-lg text-[#00D632]">
+                    {getEffectivePrice(product).toLocaleString('fr-FR')} <span className="text-[8px] md:text-[10px] font-normal text-white/50">FCFA</span>
+                  </p>
+                </div>
+              ) : (
+                <p className={`font-roboto font-black text-xs md:text-base lg:text-lg ${product.inStock === false ? 'text-white/40' : 'text-white'}`}>
+                  {product.price.toLocaleString('fr-FR')} <span className="text-[8px] md:text-[10px] font-normal text-white/50">FCFA</span>
+                </p>
+              )}
               <button
                 type="button"
                 onClick={(e) => handleAddToCart(e, product)}
-                className="bg-white text-black hover:bg-[#00D632] hover:text-white transition-all rounded-xl w-8 h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0 active:scale-90 shadow-lg z-10"
+                disabled={product.inStock === false}
+                title={product.inStock === false ? 'Rupture de stock' : 'Ajouter au panier'}
+                className={`bg-white text-black hover:bg-[#00D632] hover:text-white transition-all rounded-xl w-8 h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0 shadow-lg z-10 ${product.inStock === false ? 'opacity-40 cursor-not-allowed hover:bg-white hover:text-black' : 'active:scale-90'}`}
               >
                 <Plus size={20} strokeWidth={3} />
               </button>

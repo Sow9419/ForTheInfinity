@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
+import { STORE_WHATSAPP } from '@/lib/settings';
 
 interface FloatingWhatsAppProps {
   productName: string;
@@ -31,7 +32,7 @@ export function FloatingWhatsApp({ productName, price, quantity, selectedSizes }
       `*- Ville :* ___\n\n` +
       `*🔗 Lien du produit :* ${currentUrl}`;
 
-    const targetPhone = "22376727121"; // EXEMPLE DE NUMERO
+    const targetPhone = STORE_WHATSAPP;
     return `https://wa.me/${targetPhone}?text=${encodeURIComponent(text)}`;
   };
 

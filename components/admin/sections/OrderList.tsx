@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react';
+import { ChevronDown, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getProductImageUrl } from '@/lib/supabase';
 
@@ -12,121 +12,142 @@ interface OrderListProps {
   setExpandedOrder: (id: string | null) => void;
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  'Nouveau': 'bg-blue-50 text-blue-700 border-blue-200/70',
+  'Livré': 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
+  'En cours': 'bg-amber-50 text-amber-700 border-amber-200/70',
+};
+
 export function OrderList({ orders, expandedOrder, setExpandedOrder }: OrderListProps) {
   if (orders.length === 0) {
     return (
-      <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[32px]">
-        <ShoppingCart size={48} className="mx-auto text-white/5 mb-4" />
-        <p className="text-white/20 font-bold uppercase tracking-widest">Aucune commande</p>
+      <div className="py-20 text-center border-2 border-dashed border-black/[0.08] rounded-[26px]">
+        <ShoppingBag size={40} className="mx-auto text-neutral-200 mb-4" />
+        <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">Aucune commande</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {orders.map((order) => (
-        <div 
-          key={order.id} 
-          className={cn(
-            "relative group overflow-hidden rounded-[32px] bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl transition-all duration-300",
-            expandedOrder === order.id ? "bg-white/[0.06] border-purple-500/30" : "hover:bg-white/[0.05]"
-          )}
-        >
+    <div className="space-y-3">
+      {orders.map((order) => {
+        const expanded = expandedOrder === order.id;
+        return (
           <div
-            onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-            className="p-4 lg:p-6 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer gap-4"
+            key={order.id}
+            className={cn(
+              "relative overflow-hidden rounded-[24px] bg-white border transition-all duration-300",
+              expanded
+                ? "border-neutral-900/20 shadow-[0_2px_4px_rgba(20,18,12,0.04),0_24px_48px_-24px_rgba(20,18,12,0.28)]"
+                : "border-black/[0.06] shadow-[0_1px_2px_rgba(20,18,12,0.04)] hover:border-neutral-900/15 hover:shadow-[0_8px_24px_-16px_rgba(20,18,12,0.2)]"
+            )}
           >
-            <div className="flex items-center gap-4 lg:gap-6">
-              <div className={cn(
-                "w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-white/5 flex items-center justify-center transition-colors shrink-0",
-                expandedOrder === order.id ? "text-purple-400 bg-purple-500/10" : "text-white/20 group-hover:text-white/40"
-              )}>
-                {expandedOrder === order.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            <div
+              onClick={() => setExpandedOrder(expanded ? null : order.id)}
+              className="p-4 lg:p-5 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer gap-4"
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0",
+                  expanded ? "bg-neutral-900 text-white" : "bg-neutral-900/[0.05] text-neutral-400"
+                )}>
+                  <ChevronDown size={17} className={cn("transition-transform duration-300", expanded && "rotate-180")} />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-black text-[14.5px] tracking-tight text-neutral-900 truncate">{order.full_name}</h4>
+                  <p className="text-[10.5px] text-neutral-400 uppercase tracking-[0.14em] font-bold truncate">{order.phone} • {order.city}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-white text-base lg:text-lg truncate">{order.full_name}</h4>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest truncate">{order.phone} • {order.city}</p>
+
+              <div className="flex items-center justify-between sm:justify-end gap-5 text-right">
+                <div>
+                  <p className="text-[8.5px] text-neutral-400 uppercase font-black tracking-[0.2em] mb-0.5">Total</p>
+                  <p className="text-[16px] font-black tabular-nums text-neutral-900">{Number(order.total).toLocaleString('fr-FR')} <span className="text-[9.5px] font-bold text-neutral-400">FCFA</span></p>
+                  {order.promo_code && (
+                    <p className="text-[9px] text-emerald-600 font-black uppercase tracking-wider mt-0.5">
+                      {order.promo_code} • −{Number(order.discount || 0).toLocaleString('fr-FR')} F
+                    </p>
+                  )}
+                </div>
+                <div className={cn(
+                  "px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.12em] border",
+                  STATUS_STYLES[order.status] || 'bg-neutral-100 text-neutral-500 border-black/[0.06]'
+                )}>
+                  {order.status}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-6 md:gap-10 text-right">
-              <div className="text-left sm:text-right">
-                <p className="text-[9px] text-white/20 uppercase font-bold mb-0.5 lg:mb-1">Total</p>
-                <p className="text-base lg:text-lg font-bold text-purple-400 tabular-nums">{Number(order.total).toLocaleString()} <span className="text-[10px] font-normal opacity-50">FCFA</span></p>
-              </div>
-              <div className={cn(
-                "px-3 py-1 lg:px-4 lg:py-1.5 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-tighter border shrink-0",
-                {
-                  'bg-blue-500/10 text-blue-400 border-blue-500/20': order.status === 'Nouveau',
-                  'bg-green-500/10 text-green-400 border-green-500/20': order.status === 'Livré',
-                  'bg-orange-500/10 text-orange-400 border-orange-500/20': order.status === 'En cours',
-                }
-              )}>
-                {order.status}
-              </div>
-            </div>
-          </div>
-
-          <AnimatePresence>
-            {expandedOrder === order.id && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="overflow-hidden border-t border-white/5 bg-black/20"
-              >
-                <div className="p-8 space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="space-y-4">
-                      <h5 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/30 ml-2">Détails de livraison</h5>
-                      <div className="p-6 rounded-[24px] bg-white/[0.02] border border-white/5 space-y-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-white/20 uppercase font-bold">Adresse précise</span>
-                          <p className="text-sm text-white/80">{order.address || 'Non spécifiée'}</p>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-white/20 uppercase font-bold">Ville / Quartier</span>
-                          <p className="text-sm text-white/80">{order.city}</p>
+            <AnimatePresence>
+              {expanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  className="overflow-hidden border-t border-black/[0.05] bg-neutral-50/60"
+                >
+                  <div className="p-6 lg:p-8 space-y-7">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Livraison */}
+                      <div className="space-y-3">
+                        <h5 className="text-[9.5px] font-black uppercase tracking-[0.22em] text-neutral-400">Détails de livraison</h5>
+                        <div className="p-5 rounded-[20px] bg-white border border-black/[0.05] space-y-4">
+                          <div>
+                            <span className="text-[8.5px] text-neutral-400 uppercase font-black tracking-[0.18em]">Adresse précise</span>
+                            <p className="text-[13.5px] text-neutral-800 font-bold mt-1">{order.address || 'Non spécifiée'}</p>
+                          </div>
+                          <div>
+                            <span className="text-[8.5px] text-neutral-400 uppercase font-black tracking-[0.18em]">Ville / Quartier</span>
+                            <p className="text-[13.5px] text-neutral-800 font-bold mt-1">{order.city}</p>
+                          </div>
+                          {order.promo_code && (
+                            <div className="flex items-center justify-between pt-3 border-t border-black/[0.05]">
+                              <div>
+                                <span className="text-[8.5px] text-neutral-400 uppercase font-black tracking-[0.18em]">Code promo</span>
+                                <p className="text-[13.5px] text-emerald-600 font-black tracking-wider mt-1">{order.promo_code}</p>
+                              </div>
+                              <p className="text-[13.5px] font-black text-emerald-600 tabular-nums">−{Number(order.discount || 0).toLocaleString('fr-FR')} <span className="text-[9.5px] font-bold text-neutral-400">FCFA</span></p>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <h5 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/30 ml-2">Articles commandés ({order.order_items?.length || 0})</h5>
+                      {/* Articles */}
                       <div className="space-y-3">
-                        {order.order_items?.map((item: any) => (
-                          <div key={item.id} className="flex items-center gap-4 p-4 rounded-[20px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
-                            <div className="w-16 h-16 rounded-xl bg-white/5 overflow-hidden border border-white/10 shrink-0">
-                              <img 
-                                src={getProductImageUrl(item.products?.image)} 
-                                alt="" 
-                                className="w-full h-full object-cover" 
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
-                                }}
-                              />
+                        <h5 className="text-[9.5px] font-black uppercase tracking-[0.22em] text-neutral-400">Articles commandés ({order.order_items?.length || 0})</h5>
+                        <div className="space-y-2.5">
+                          {order.order_items?.map((item: any) => (
+                            <div key={item.id} className="flex items-center gap-4 p-3.5 rounded-[18px] bg-white border border-black/[0.05] hover:border-neutral-900/12 transition-colors">
+                              <div className="w-14 h-14 rounded-xl bg-neutral-100 overflow-hidden shrink-0 border border-black/[0.04]">
+                                <img
+                                  src={getProductImageUrl(item.products?.image)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-black text-neutral-900 truncate tracking-tight">{item.products?.name}</p>
+                                <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-bold mt-1">
+                                  Taille: <span className="text-neutral-700">{item.size || 'N/A'}</span> • Qté: <span className="text-neutral-700">{item.quantity}</span>
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[13px] font-black text-neutral-900 tabular-nums">{Number((item.price ?? item.products?.price) * item.quantity).toLocaleString('fr-FR')} <span className="text-[9.5px] font-bold text-neutral-400">F</span></p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-white truncate">{item.products?.name}</p>
-                              <p className="text-[10px] text-white/40 uppercase font-medium mt-1">
-                                Taille: <span className="text-purple-400">{item.size || 'N/A'}</span> • Qté: <span className="text-white/80">{item.quantity}</span>
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-bold text-white/90">{Number(item.products?.price * item.quantity).toLocaleString()} <span className="text-[10px] font-normal text-white/40">FCFA</span></p>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
     </div>
   );
 }

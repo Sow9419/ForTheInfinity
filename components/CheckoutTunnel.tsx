@@ -16,10 +16,20 @@ export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose
   const { items, totalPrice, clearCart, setIsCheckoutOpen } = useCartStore();
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  // Total affiché dans le footer fixe — tient compte du code promo appliqué
+  const [displayTotal, setDisplayTotal] = React.useState(totalPrice);
+
+  React.useEffect(() => {
+    setDisplayTotal((prev) => (prev === totalPrice ? prev : totalPrice));
+  }, [totalPrice]);
 
   const handleClear = () => {
     clearCart();
   };
+
+  const handleTotalChange = React.useCallback((total: number) => {
+    setDisplayTotal(total);
+  }, []);
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -45,6 +55,7 @@ export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose
             setSuccess={setIsSuccess}
             onClearCart={handleClear}
             onLoadingChange={setIsLoading}
+            onTotalChange={handleTotalChange}
             closeCheckout={() => {
               if (onClose) onClose();
               else setIsCheckoutOpen(false);
@@ -60,7 +71,7 @@ export function CheckoutContent({ onClose, idForm = "checkout-form" }: { onClose
         <div className="flex-none p-6 md:p-10 border-t border-gray-200 md:border-white/10">
           <div className="flex justify-between items-center mb-4">
             <span className="font-black text-[10px] uppercase tracking-widest text-gray-200 md:text-white/50">Total à payer</span>
-            <span className="font-black text-2xl text-white md:text-white">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+            <span className="font-black text-2xl text-white md:text-white">{(displayTotal || totalPrice).toLocaleString('fr-FR')} FCFA</span>
           </div>
           <div className="pt-2 w-full">
             <motion.button

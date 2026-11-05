@@ -1,12 +1,13 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { STORE_WHATSAPP } from "@/lib/settings"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 export function getWhatsAppUrl(productName?: string, price?: number) {
-  const phone = "22376727121";
+  const phone = STORE_WHATSAPP;
   const baseUrl = `https://wa.me/${phone}`;
 
   if (!productName) {

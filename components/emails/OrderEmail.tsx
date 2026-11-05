@@ -6,6 +6,9 @@ interface OrderEmailProps {
   customerCoordinates?: { lat: number, lon: number } | null;
   items: any[];
   total: number;
+  promoCode?: string | null;
+  discount?: number;
+  discountPercent?: number | null;
 }
 
 export function generateOrderEmailHtml({
@@ -16,6 +19,9 @@ export function generateOrderEmailHtml({
   customerCoordinates,
   items,
   total,
+  promoCode,
+  discount = 0,
+  discountPercent,
 }: OrderEmailProps): string {
   const itemsHtml = items.map(item => `
     <tr style="border-bottom: 1px solid #eeeeee;">
@@ -29,7 +35,10 @@ export function generateOrderEmailHtml({
       </td>
       <td style="text-align: center; padding: 15px 0; font-size: 14px;">${item.quantity}</td>
       <td style="text-align: right; padding: 15px 0; font-weight: bold; font-size: 14px;">
-        ${(item.price * item.quantity).toLocaleString('fr-FR')} FCFA
+        ${item.originalPrice != null && Number(item.originalPrice) > Number(item.price) ? `
+          <span style="text-decoration: line-through; color: #999999; font-weight: normal;">${Number(item.originalPrice * item.quantity).toLocaleString('fr-FR')} FCFA</span><br/>
+          <span style="color: #00A025;">${Number(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</span>
+        ` : `${Number(item.price * item.quantity).toLocaleString('fr-FR')} FCFA`}
       </td>
     </tr>
   `).join('');
@@ -84,10 +93,28 @@ export function generateOrderEmailHtml({
             </table>
           </div>
 
+          ${promoCode ? `
+            <div style="background-color: #ecfdf5; border: 1px dashed #6ee7b7; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 13px; font-weight: bold; color: #059669;">🎟️ CODE PROMO APPLIQUÉ</div>
+                <div style="font-size: 18px; font-weight: 900; color: #059669; letter-spacing: 1px; margin-top: 3px;">${promoCode}${discountPercent != null ? ` <span style="font-size: 12px; font-weight: bold;">(−${discountPercent}%)</span>` : ''}</div>
+              </div>
+              <div style="font-size: 16px; font-weight: bold; color: #059669;">
+                −${Number(discount).toLocaleString('fr-FR')} FCFA
+              </div>
+            </div>
+          ` : ''}
+
           <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; text-align: right;">
+            ${promoCode && discount ? `
+              <div style="margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #888888; margin-right: 15px; text-transform: uppercase;">Sous-total</span>
+                <span style="font-size: 14px; font-weight: bold; color: #333333; text-decoration: line-through;">${Number(total + discount).toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            ` : ''}
             <span style="font-size: 14px; color: #888888; margin-right: 15px; text-transform: uppercase;">Total</span>
             <span style="font-size: 24px; font-weight: 900; color: #00D632;">
-              ${total.toLocaleString('fr-FR')} FCFA
+              ${Number(total).toLocaleString('fr-FR')} FCFA
             </span>
           </div>
         </div>

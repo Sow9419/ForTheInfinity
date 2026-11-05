@@ -24,10 +24,12 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 interface SignInCardProps {
   onSignIn: (email: string) => Promise<void>;
   isLoading?: boolean;
+  /** E-mail déjà renseigné (réaffiché après un retour depuis l'écran OTP) */
+  initialEmail?: string;
 }
 
-export function SignInCard({ onSignIn, isLoading: externalLoading }: SignInCardProps) {
-  const [email, setEmail] = useState("");
+export function SignInCard({ onSignIn, isLoading: externalLoading, initialEmail = "" }: SignInCardProps) {
+  const [email, setEmail] = useState(initialEmail);
   const [internalLoading, setInternalLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
@@ -312,7 +314,7 @@ export function SignInCard({ onSignIn, isLoading: externalLoading }: SignInCardP
                             exit={{ opacity: 0 }}
                             className="flex items-center justify-center gap-2 text-sm uppercase tracking-wider"
                           >
-                            Recevoir un lien magique
+                            Recevoir un code
                             <ArrowRight className="w-4 h-4 group-hover/button:translate-x-1 transition-transform duration-300" />
                           </motion.span>
                         )}

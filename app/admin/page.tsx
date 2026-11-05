@@ -1,38 +1,54 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getProductImageUrl } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
-  ShoppingCart,
-  Layers,
+  ShoppingBag,
+  Megaphone,
   LogOut,
   Plus,
   Search,
-  Bell,
-  Clock,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown
+  Layers,
+  Trash2,
+  Edit3,
+  Images,
+  Tag,
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
-import { Product, Category } from '@/types';
+import { Product, Category, HeroSlide, SizeOption, PromoCode } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 // Modals
 import { ProductModal } from '@/components/admin/ProductModal';
 import { CategoryModal } from '@/components/admin/CategoryModal';
+import { HeroSectionModal } from '@/components/admin/HeroSectionModal';
 
 // Sections
 import { KPICards } from '@/components/admin/sections/KPICards';
 import { ProductTable } from '@/components/admin/sections/ProductTable';
 import { OrderList } from '@/components/admin/sections/OrderList';
 import { ChartRadarDots } from '@/components/admin/sections/ChartRadar';
+import { PromoManager, SizesManager } from '@/components/admin/sections/PromoAndSizesManager';
+import { Card, SectionHeader, PrimaryButton, Segmented } from '@/components/admin/ui';
+import { BrandLoader } from '@/components/BrandLoader';
 
 // --- Types ---
-type Tab = 'dashboard' | 'products' | 'orders' | 'categories';
+type Tab = 'overview' | 'catalog' | 'orders' | 'marketing';
+type CatalogView = 'products' | 'categories' | 'sizes';
+type MarketingView = 'promos' | 'hero';
 
 interface KPIData {
   ordersCount: number;
@@ -41,37 +57,55 @@ interface KPIData {
   visitorCount: number;
 }
 
-// --- Shared Components ---
-const GlassCard = ({ children, className, delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay }}
-    className={cn(
-      "relative group overflow-hidden rounded-[32px] bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl p-6 hover:bg-white/[0.05] transition-all duration-300",
-      className
-    )}
-  >
-    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    {children}
-  </motion.div>
-);
-
-const SectionHeader = ({ title, description, actions }: { title: string, description?: string, actions?: React.ReactNode }) => (
-  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-    <div>
-      <h2 className="text-3xl font-bold tracking-tight text-white">{title}</h2>
-      {description && <p className="text-white/40 text-sm mt-1">{description}</p>}
-    </div>
-    <div className="flex items-center gap-3">
-      {actions}
-    </div>
-  </div>
+/** Avatar + menu profil (déconnexion, boutique, rechargement) */
+const UserMenu = ({ initial, email, onSignOut, onRefresh }: { initial: string, email?: string, onSignOut?: () => void, onRefresh?: () => void }) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger
+      title="Mon profil"
+      className="mt-2.5 w-11 h-11 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[13px] font-black shadow-[0_14px_30px_-10px_rgba(20,18,12,0.55)] hover:scale-105 active:scale-95 transition-transform outline-none cursor-pointer"
+    >
+      {initial.slice(0, 1).toUpperCase()}
+    </DropdownMenuTrigger>
+    <DropdownMenuContent
+      align="end"
+      side="right"
+      sideOffset={12}
+      className="w-64 rounded-[22px] border border-black/[0.06] bg-white p-2 shadow-[0_24px_60px_-20px_rgba(20,18,12,0.35)]"
+    >
+      <div className="px-3 py-2.5">
+        <p className="text-[9px] font-black uppercase tracking-[0.22em] text-neutral-400">Administrateur</p>
+        <p className="text-[12.5px] font-bold text-neutral-900 truncate mt-0.5">{email || 'admin@4theinfinity.com'}</p>
+      </div>
+      <DropdownMenuSeparator className="mx-2 bg-black/[0.06]" />
+      <DropdownMenuItem
+        onClick={() => window.open('/', '_blank')}
+        className="rounded-xl px-3 py-2.5 text-[12.5px] font-bold cursor-pointer"
+      >
+        <ExternalLink size={15} /> Voir la boutique
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => onRefresh?.()}
+        className="rounded-xl px-3 py-2.5 text-[12.5px] font-bold cursor-pointer"
+      >
+        <RefreshCw size={15} /> Recharger les données
+      </DropdownMenuItem>
+      <DropdownMenuSeparator className="mx-2 bg-black/[0.06]" />
+      <DropdownMenuItem
+        variant="destructive"
+        onClick={() => onSignOut?.()}
+        className="rounded-xl px-3 py-2.5 text-[12.5px] font-bold cursor-pointer"
+      >
+        <LogOut size={15} /> Déconnexion
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 );
 
 export default function AdminPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [catalogView, setCatalogView] = useState<CatalogView>('products');
+  const [marketingView, setMarketingView] = useState<MarketingView>('promos');
   const [timeRange, setTimeRange] = useState<'day' | 'month'>('day');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -87,25 +121,80 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [heroSections, setHeroSections] = useState<HeroSlide[]>([]);
+  const [sizes, setSizes] = useState<SizeOption[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
 
   // UI State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isHeroModalOpen, setIsHeroModalOpen] = useState(false);
+  const [editingHero, setEditingHero] = useState<HeroSlide | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      // Products
-      const { data: productsData, error: prodErr } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      if (prodErr) console.error('Products fetch error:', prodErr);
-      if (productsData) setProducts(productsData as any);
+      // Products (avec les tailles liées pour le modal d'édition)
+      let productsRaw: any[] | null = null;
+      const productsJoined = await supabase
+        .from('products')
+        .select('*, product_sizes(size_id, in_stock, sizes(id, name, position))')
+        .order('created_at', { ascending: false });
+      if (productsJoined.error) {
+        // Fallback si la migration commerce n'est pas encore exécutée
+        const productsPlain = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        if (productsPlain.error) console.error('Products fetch error:', productsPlain.error);
+        productsRaw = productsPlain.data;
+      } else {
+        productsRaw = productsJoined.data;
+      }
+      if (productsRaw) {
+        setProducts(productsRaw.map((record: any) => ({
+          ...record,
+          inStock: record.in_stock !== false,
+          promoPrice: record.promo_price != null ? Number(record.promo_price) : null,
+          isLimited: record.is_limited === true,
+          isNew: record.is_new === true,
+          sizes: (record.product_sizes || [])
+            .map((ps: any) => ({ sizeId: ps.size_id, name: ps.sizes?.name || '', position: ps.sizes?.position ?? 99, inStock: ps.in_stock !== false }))
+            .sort((a: any, b: any) => a.position - b.position),
+        })));
+      }
 
       // Categories
       const { data: categoriesData, error: catErr } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
       if (catErr) console.error('Categories fetch error:', catErr);
       if (categoriesData) setCategories(categoriesData);
+
+      // Hero sections
+      const { data: heroData, error: heroErr } = await supabase.from('hero_sections').select('*').order('created_at', { ascending: false });
+      if (heroErr) console.error('Hero sections fetch error:', heroErr);
+      if (heroData) {
+        setHeroSections(heroData.map((record: any) => ({ id: record.id, image: record.image, title: record.title, description: record.description, position: record.position })));
+      }
+
+      // Tailles globales (existe après la migration commerce)
+      const { data: sizesData, error: sizesErr } = await supabase.from('sizes').select('*').order('position', { ascending: true });
+      if (sizesErr) console.warn('Sizes fetch (migration commerce pas encore exécutée ?):', sizesErr.message);
+      if (sizesData) setSizes(sizesData.map((s: any) => ({ id: s.id, name: s.name, position: s.position })));
+
+      // Codes promo (existe après la migration commerce)
+      const { data: promoData, error: promoErr } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false });
+      if (promoErr) console.warn('Promo codes fetch (migration commerce pas encore exécutée ?):', promoErr.message);
+      if (promoData) {
+        setPromoCodes(promoData.map((p: any) => ({
+          id: p.id,
+          code: p.code,
+          discountPercent: Number(p.discount_percent),
+          active: p.active,
+          expiresAt: p.expires_at,
+          maxUses: p.max_uses,
+          usedCount: p.used_count || 0,
+          productIds: p.product_ids || null,
+        })));
+      }
 
       // Orders with joined items
       const { data: ordersData, error: orderErr } = await supabase
@@ -114,7 +203,7 @@ export default function AdminPage() {
         .order('created_at', { ascending: false });
 
       if (orderErr) console.error('Orders fetch error:', orderErr);
-      
+
       if (ordersData) {
         setOrders(ordersData);
         const totalRevenue = ordersData.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
@@ -124,14 +213,14 @@ export default function AdminPage() {
           const { count: visitorCount } = await supabase.from('visitor_stats').select('*', { count: 'exact', head: true });
           setKpis({
             ordersCount: ordersData.length,
-            productsCount: productsData?.length || 0,
+            productsCount: productsRaw?.length || 0,
             revenue: totalRevenue,
             visitorCount: visitorCount || 0
           });
         } catch (e) {
           setKpis({
             ordersCount: ordersData.length,
-            productsCount: productsData?.length || 0,
+            productsCount: productsRaw?.length || 0,
             revenue: totalRevenue,
             visitorCount: 0
           });
@@ -147,7 +236,7 @@ export default function AdminPage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         router.push('/authentification');
         return;
@@ -165,7 +254,11 @@ export default function AdminPage() {
       supabase.channel('admin-changes')
         .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'orders' }, () => fetchData())
         .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'products' }, () => fetchData())
+        .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'product_sizes' }, () => fetchData())
+        .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'sizes' }, () => fetchData())
+        .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'promo_codes' }, () => fetchData())
         .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'categories' }, () => fetchData())
+        .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'hero_sections' }, () => fetchData())
         .subscribe()
     ];
 
@@ -207,6 +300,20 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteHero = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette slide Hero ?')) return;
+    setActionLoading(id);
+    try {
+      const { error } = await supabase.from('hero_sections').delete().eq('id', id);
+      if (error) throw error;
+      await fetchData();
+    } catch (error: any) {
+      alert("Erreur lors de la suppression: " + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredKpis = useMemo(() => {
     const now = new Date();
     const filteredOrders = orders.filter(order => {
@@ -219,7 +326,7 @@ export default function AdminPage() {
     });
 
     const revenue = filteredOrders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
-    
+
     return {
       ordersCount: filteredOrders.length,
       productsCount: products.length,
@@ -229,20 +336,20 @@ export default function AdminPage() {
   }, [orders, products, timeRange, kpis.visitorCount]);
 
   const revenueEvolution = useMemo(() => {
-    const isSameDay = (d1: Date, d2: Date) => 
+    const isSameDay = (d1: Date, d2: Date) =>
       d1.getFullYear() === d2.getFullYear() &&
       d1.getMonth() === d2.getMonth() &&
       d1.getDate() === d2.getDate();
 
     if (orders.length === 0) {
-      return [30, 45, 35, 60, 50, 80, 70].map((v, i) => ({ 
-        label: `J-${6-i}`, 
+      return [30, 45, 35, 60, 50, 80, 70].map((v, i) => ({
+        label: `J-${6-i}`,
         value: v, // Pour l'échelle du radar (fictif)
         orders: Math.floor(v / 10), // Nombre de commandes fictif
         revenue: v * 1000 // Revenu fictif
       }));
     }
-    
+
     if (timeRange === 'day') {
       const last7Days = [...Array(7)].map((_, i) => {
         const d = new Date();
@@ -253,7 +360,7 @@ export default function AdminPage() {
           label: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
           orders: dayOrders.length,
           revenue: dayTotal,
-          value: dayOrders.length // On utilise le nombre de commandes pour l'échelle du radar
+          value: dayOrders.length
         };
       });
       return last7Days;
@@ -278,215 +385,385 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-6xl font-bold text-white/20">∞</motion.div>
+      <div className="w-full min-h-[100dvh] bg-[#F5F4F0]">
+        <BrandLoader className="min-h-[100dvh]" />
       </div>
     );
   }
 
+  const NAV = [
+    { id: 'overview', label: 'Aperçu', icon: <LayoutDashboard size={18} /> },
+    { id: 'catalog', label: 'Catalogue', icon: <Package size={18} /> },
+    { id: 'orders', label: 'Commandes', icon: <ShoppingBag size={18} /> },
+    { id: 'marketing', label: 'Marketing', icon: <Megaphone size={18} /> },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-[#020202] text-white flex overflow-hidden font-sans selection:bg-purple-500/30">
-      {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex w-72 border-r border-white/5 flex-col bg-black/40 backdrop-blur-2xl z-50">
-        <div className="p-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-purple-500/20">∞</div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg tracking-tight leading-none">Infinity</span>
-              <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-medium mt-1">Admin Panel</span>
-            </div>
-          </div>
+    <div className="min-h-screen text-neutral-900 flex overflow-hidden font-sans selection:bg-neutral-900/10 bg-[#F6F4EE]">
+      {/* Halos d'ambiance */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full bg-[#E4EBD9]/60 blur-[120px]" />
+        <div className="absolute top-1/3 right-0 w-[420px] h-[420px] rounded-full bg-[#EDDDC9]/50 blur-[110px]" />
+        <div className="absolute bottom-0 left-1/3 w-[480px] h-[380px] rounded-full bg-[#DCE3E0]/40 blur-[110px]" />
+      </div>
+
+      {/* ============================================================ */}
+      {/* Rail — icônes circulaires (desktop)                          */}
+      {/* ============================================================ */}
+      <aside className="hidden lg:flex w-[92px] shrink-0 flex-col items-center pt-6 pb-5 z-50 relative">
+        {/* Logo */}
+        <div className="w-12 h-12 rounded-full bg-white shadow-[0_10px_28px_-12px_rgba(20,18,12,0.35)] flex items-center justify-center border border-black/[0.04] transition-transform hover:scale-105 duration-300">
+          <img src="/logo.png" alt="4TheInfinity" className="h-6 w-6 object-contain" />
         </div>
 
-        <nav className="flex-1 px-4 flex flex-col gap-2">
-          {[
-            { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard size={20} /> },
-            { id: 'products', label: 'Produits', icon: <Package size={20} /> },
-            { id: 'orders', label: 'Commandes', icon: <ShoppingCart size={20} /> },
-            { id: 'categories', label: 'Catégories', icon: <Layers size={20} /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as Tab)}
-              className={cn(
-                "group flex items-center gap-4 px-5 py-4 rounded-[20px] transition-all duration-300 relative overflow-hidden",
-                activeTab === item.id
-                  ? "text-white bg-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
-                  : "text-white/40 hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              <div className={cn("p-2 rounded-xl transition-colors", activeTab === item.id ? "bg-purple-500/20 text-purple-400" : "text-inherit group-hover:text-white")}>
-                {item.icon}
-              </div>
-              <span className="font-medium">{item.label}</span>
-              {activeTab === item.id && (
-                <motion.div layoutId="active-nav-indicator" className="absolute right-4 w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-              )}
-            </button>
-          ))}
+        <div className="w-8 h-px bg-black/[0.07] mt-5 mb-5" />
+
+        <nav className="flex-1 flex flex-col items-center gap-2.5">
+          {NAV.map((item) => {
+            const active = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as Tab)}
+                aria-label={item.label}
+                className={cn(
+                  "group relative w-[52px] h-[52px] flex items-center justify-center rounded-full transition-all duration-300",
+                  active ? "text-white" : "text-neutral-500 hover:text-neutral-900 hover:bg-white/80 hover:shadow-[0_10px_28px_-14px_rgba(20,18,12,0.35)]"
+                )}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="rail-active"
+                    transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                    className="absolute inset-0 bg-neutral-900 rounded-full shadow-[0_14px_30px_-10px_rgba(20,18,12,0.6)]"
+                  />
+                )}
+                <span className="relative z-10">{item.icon}</span>
+                {/* Tooltip */}
+                <span className={cn(
+                  "pointer-events-none absolute left-full ml-3 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap z-50",
+                  "bg-neutral-900 text-white opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200",
+                  "shadow-[0_10px_26px_-10px_rgba(20,18,12,0.5)]"
+                )}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="p-4 mt-auto">
-          <button onClick={handleSignOut} className="flex items-center gap-4 w-full px-5 py-4 rounded-[20px] text-red-400/60 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300">
-            <div className="p-2 rounded-xl bg-red-500/10"><LogOut size={20} /></div>
-            <span className="font-medium">Déconnexion</span>
-          </button>
+        {/* Live */}
+        <div className="group/live relative flex items-center justify-center w-[52px] h-[52px] rounded-full bg-white border border-black/[0.05] shadow-[0_10px_28px_-14px_rgba(20,18,12,0.3)] cursor-default">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className={cn("pointer-events-none absolute left-full ml-3 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap bg-white border border-black/[0.05]",
+            "shadow-[0_10px_26px_-10px_rgba(20,18,12,0.35)] opacity-0 translate-x-1 group-hover/live:opacity-100 group-hover/live:translate-x-0 transition-all duration-200")}>
+            {kpis.visitorCount} visiteurs en ligne
+          </span>
         </div>
+
+        {/* Avatar + menu */}
+        <UserMenu initial={user?.email || 'A'} email={user?.email} onSignOut={handleSignOut} onRefresh={() => fetchData()} />
       </aside>
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col relative h-screen">
-        <header className="h-20 border-b border-white/5 bg-black backdrop-blur-md px-6 lg:px-10 flex items-center justify-between z-40">
-          <div className="lg:hidden flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-purple-500 flex items-center justify-center font-bold">∞</div></div>
-          <div className="flex-1 max-w-md hidden md:block">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-purple-400 transition-colors" />
-              <input placeholder="Rechercher..." className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-purple-500/30 focus:bg-white/[0.06] transition-all" />
+      {/* ============================================================ */}
+      {/* Panneau de contenu principal — elevated panel                */}
+      {/* ============================================================ */}
+      <div className="flex-1 min-w-0 h-screen relative z-10 p-0 lg:pl-1 lg:py-4 lg:pr-4">
+        <div className="h-full flex flex-col rounded-none lg:rounded-[34px] bg-white/85 backdrop-blur-2xl border border-white/70 shadow-[0_2px_6px_rgba(20,18,12,0.04),0_40px_90px_-30px_rgba(20,18,12,0.22)] overflow-hidden">
+
+          {/* Barre supérieure — dans le panneau */}
+          <header className="h-[74px] shrink-0 flex items-center justify-between px-6 lg:px-9 border-b border-black/[0.05]">
+            <div className="lg:hidden flex items-center gap-2.5">
+              <img src="/logo.png" alt="4TheInfinity" className="h-7 w-auto object-contain" />
             </div>
-          </div>
-          <div className="flex items-center gap-3 lg:gap-5">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[11px] font-bold uppercase tracking-wider">
-               <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-               Live: {kpis.visitorCount}
+            <div className="hidden lg:flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-neutral-900/80" />
+              <span className="text-[10px] font-black uppercase tracking-[0.26em] text-neutral-400">
+                {NAV.find(n => n.id === activeTab)?.label}
+              </span>
             </div>
-            <button className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.05] text-white/40 hover:text-white transition-colors relative"><Bell size={20} /><span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#020202]" /></button>
-            <div className="h-8 w-px bg-white/5 mx-1" />
-            <div className="flex items-center gap-3 pl-2">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-zinc-700 to-black border border-white/10 flex items-center justify-center text-white/80 font-bold overflow-hidden">
-                <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.email || 'Admin'}&backgroundColor=transparent`} alt="avatar" />
+
+            <div className="flex-1 max-w-md hidden md:block mx-auto">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-neutral-900 transition-colors" />
+                <input
+                  placeholder="Rechercher un produit, une commande..."
+                  className="w-full bg-white/70 border border-black/[0.06] rounded-full py-2.5 pl-11 pr-4 text-[13px] font-semibold focus:outline-none focus:border-neutral-900/25 focus:bg-white focus:ring-4 focus:ring-neutral-900/[0.05] transition-all shadow-[0_1px_2px_rgba(20,18,12,0.05)]"
+                />
               </div>
             </div>
-          </div>
-        </header>
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 pb-32 lg:pb-10 custom-scrollbar">
-          <AnimatePresence mode="wait">
-            {activeTab === 'dashboard' && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
-                <SectionHeader 
-                  title="Tableau de bord" 
-                  description="Aperçu global de la performance en temps réel." 
+            {/* Profil — l'ancien bouton "notification" est remplacé par ce menu */}
+            <div className="lg:hidden">
+              <UserMenu initial={user?.email || 'A'} email={user?.email} onSignOut={handleSignOut} onRefresh={() => fetchData()} />
+            </div>
+            <div className="hidden lg:block">
+              <UserMenu initial={user?.email || 'A'} email={user?.email} onSignOut={handleSignOut} onRefresh={() => fetchData()} />
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto px-6 lg:px-9 py-7 lg:py-9 pb-32 lg:pb-9 custom-scrollbar">
+            <AnimatePresence mode="wait">
+            {/* ======================================================== */}
+            {/* APERÇU                                                    */}
+            {/* ======================================================== */}
+            {activeTab === 'overview' && (
+              <motion.div key="overview" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }} className="space-y-8">
+                <SectionHeader
+                  title="Aperçu"
+                  description="La performance de la boutique en temps réel."
                   actions={
-                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
-                      <button 
-                        onClick={() => setTimeRange('day')}
-                        className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", timeRange === 'day' ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20" : "text-white/40 hover:text-white")}
-                      >
-                        Jour
-                      </button>
-                      <button 
-                        onClick={() => setTimeRange('month')}
-                        className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", timeRange === 'month' ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20" : "text-white/40 hover:text-white")}
-                      >
-                        Mois
-                      </button>
+                    <div className="inline-flex p-1.5 rounded-full bg-white border border-black/[0.05] shadow-[0_1px_2px_rgba(20,18,12,0.05),0_14px_34px_-20px_rgba(20,18,12,0.25)]">
+                      {(['day', 'month'] as const).map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => setTimeRange(r)}
+                          className={cn("relative px-5 py-2.5 rounded-full text-xs font-black tracking-tight transition-colors", timeRange === r ? "text-white" : "text-neutral-500 hover:text-neutral-900")}
+                        >
+                          {timeRange === r && (
+                            <motion.div layoutId="range-pill" transition={{ type: 'spring', stiffness: 480, damping: 38 }} className="absolute inset-0 bg-neutral-900 rounded-full shadow-[0_10px_24px_-8px_rgba(20,18,12,0.55)]" />
+                          )}
+                          <span className="relative z-10">{r === 'day' ? "Aujourd'hui" : 'Ce mois'}</span>
+                        </button>
+                      ))}
                     </div>
-                  } 
+                  }
                 />
-                
+
                 <KPICards kpis={filteredKpis} />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                   <div className="lg:col-span-2">
-                    <ChartRadarDots 
-                      data={revenueEvolution} 
-                      title={`Revenus (${timeRange === 'day' ? '7 derniers jours' : 'Année en cours'})`}
-                      description={`Analyse des revenus basés sur les commandes validées.`}
+                    <ChartRadarDots
+                      data={revenueEvolution}
+                      title={`Revenus — ${timeRange === 'day' ? '7 derniers jours' : 'Année en cours'}`}
+                      description="Analyse des commandes enregistrées."
                     />
                   </div>
-                  <GlassCard className="h-full overflow-hidden flex flex-col relative" delay={0.5}>
-                    <h3 className="text-lg font-bold mb-6 px-2">Commandes Récentes</h3>
-                    <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                  <Card className="flex flex-col" delay={0.5}>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-black text-[17px] tracking-tight text-neutral-900">Dernières commandes</h3>
+                      <button onClick={() => setActiveTab('orders')} className="text-[11px] font-bold text-neutral-400 hover:text-neutral-900 transition-colors uppercase tracking-wider">Tout voir</button>
+                    </div>
+                    <div className="flex-1 space-y-2 -mx-2 px-2 overflow-y-auto custom-scrollbar max-h-[340px]">
                       {orders.slice(0, 8).map((order) => (
-                        <div key={order.id} className="flex items-start gap-4 p-2 rounded-xl hover:bg-white/[0.02] transition-colors group">
-                          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all">{order.full_name[0]}</div>
+                        <div key={order.id} className="flex items-center gap-3.5 p-2.5 rounded-2xl hover:bg-neutral-50 transition-colors group cursor-default">
+                          <div className="w-9 h-9 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[11px] font-black shrink-0">{order.full_name[0]}</div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white/90 leading-none mb-1 truncate">{order.full_name}</p>
-                            <p className="text-[10px] text-white/40 uppercase font-medium">{order.status} • <span className="text-purple-400/80">{Number(order.total).toLocaleString()} FCFA</span></p>
+                            <p className="text-[13px] font-bold text-neutral-900 truncate">{order.full_name}</p>
+                            <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider">{order.status}</p>
                           </div>
+                          <span className="text-[13px] font-black tabular-nums text-neutral-900">{Number(order.total).toLocaleString('fr-FR')}</span>
                         </div>
                       ))}
-                      {orders.length === 0 && <p className="text-center text-white/20 mt-20">Aucune commande</p>}
-                      <div className="h-10" /> {/* Spacer pour le fondu */}
+                      {orders.length === 0 && <p className="text-center text-neutral-300 text-xs py-16 font-bold uppercase tracking-widest">Aucune commande</p>}
                     </div>
-                    {/* Fade effect */}
-                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0A0A0A] to-transparent pointer-events-none z-20" />
-                  </GlassCard>
+                  </Card>
                 </div>
               </motion.div>
             )}
 
-            {activeTab === 'products' && (
-              <motion.div key="products" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                <SectionHeader title="Produits" description={`${products.length} articles en inventaire.`} actions={<button onClick={() => { setEditingProduct(null); setIsProductModalOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-500 transition-all shadow-lg active:scale-95"><Plus size={18} />Nouveau Produit</button>} />
-                <ProductTable 
-                  products={products} 
-                  onEdit={(p) => { setEditingProduct(p); setIsProductModalOpen(true); }} 
-                  onDelete={handleDeleteProduct}
-                  actionLoading={actionLoading}
-                />
-              </motion.div>
-            )}
-
-            {activeTab === 'categories' && (
-              <motion.div key="categories" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
+            {/* ======================================================== */}
+            {/* CATALOGUE                                                 */}
+            {/* ======================================================== */}
+            {activeTab === 'catalog' && (
+              <motion.div key="catalog" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }} className="space-y-8">
                 <SectionHeader
-                  title="Catégories"
-                  description="Gérez les collections et l'organisation des produits."
-                  actions={<button onClick={() => { setEditingCategory(null); setIsCategoryModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 lg:px-6 lg:py-3 bg-white text-black font-bold rounded-xl lg:rounded-2xl hover:bg-gray-200 transition-all active:scale-95 text-xs lg:text-base"><Plus size={18} />Nouvelle Catégorie</button>}
-                />
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
-                  {categories.map((cat, i) => (
-                    <motion.div key={cat.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="group relative flex flex-col items-center justify-center p-4 lg:p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-purple-500/30 transition-all duration-300 text-center">
-                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform mb-4">
-                        <Layers size={20} />
-                      </div>
-                      <h4 className="text-sm lg:text-xl font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1">{cat.name}</h4>
-                      
-                      <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => { setEditingCategory(cat); setIsCategoryModalOpen(true); }} className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Plus size={16} className="rotate-45" /></button>
-                        <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 rounded-lg bg-red-500/5 border border-red-500/10 text-red-400/40 hover:text-red-400 transition-all"><Plus size={16} className="rotate-45 text-red-400" /></button>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {categories.length === 0 && (
-                    <div className="col-span-2 lg:col-span-3 py-20 text-center border-2 border-dashed border-white/5 rounded-[32px]">
-                       <Layers size={48} className="mx-auto text-white/5 mb-4" />
-                       <p className="text-white/20 font-bold uppercase tracking-widest">Aucune catégorie</p>
+                  title="Catalogue"
+                  description="Produits, catégories et tailles — tout l'inventaire de la boutique."
+                  actions={
+                    <div className="flex items-center gap-3">
+                      {catalogView === 'products' && (
+                        <PrimaryButton onClick={() => { setEditingProduct(null); setIsProductModalOpen(true); }}><Plus size={16} />Nouveau produit</PrimaryButton>
+                      )}
+                      {catalogView === 'categories' && (
+                        <PrimaryButton onClick={() => { setEditingCategory(null); setIsCategoryModalOpen(true); }}><Plus size={16} />Nouvelle catégorie</PrimaryButton>
+                      )}
                     </div>
-                  )}
-                </div>
+                  }
+                />
+
+                <Segmented
+                  layoutId="catalog-seg"
+                  value={catalogView}
+                  onChange={setCatalogView}
+                  items={[
+                    { id: 'products', label: 'Produits', count: products.length, icon: <Package size={14} /> },
+                    { id: 'categories', label: 'Catégories', count: categories.length, icon: <Layers size={14} /> },
+                    { id: 'sizes', label: 'Tailles', count: sizes.length, icon: <Tag size={14} /> },
+                  ]}
+                />
+
+                {catalogView === 'products' && (
+                  <ProductTable
+                    products={products}
+                    onEdit={(p) => { setEditingProduct(p); setIsProductModalOpen(true); }}
+                    onDelete={handleDeleteProduct}
+                    actionLoading={actionLoading}
+                  />
+                )}
+
+                {catalogView === 'categories' && (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {categories.map((cat, i) => (
+                      <motion.div
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="group relative flex flex-col justify-between p-5 rounded-[24px] bg-white border border-black/[0.06] hover:border-neutral-900/20 hover:shadow-[0_16px_40px_-24px_rgba(20,18,12,0.25)] transition-all duration-300"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="w-10 h-10 rounded-xl bg-neutral-900/[0.04] flex items-center justify-center text-neutral-700">
+                            <Layers size={17} />
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                            <button onClick={() => { setEditingCategory(cat); setIsCategoryModalOpen(true); }} className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-900 transition-all"><Edit3 size={14} /></button>
+                            <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 rounded-lg hover:bg-red-50 text-neutral-400 hover:text-red-600 transition-all"><Trash2 size={14} /></button>
+                          </div>
+                        </div>
+                        <h4 className="mt-5 font-black text-[15px] tracking-tight text-neutral-900 truncate">{cat.name}</h4>
+                      </motion.div>
+                    ))}
+                    {categories.length === 0 && (
+                      <div className="col-span-2 lg:col-span-4 py-20 text-center border-2 border-dashed border-black/[0.08] rounded-[26px]">
+                        <Layers size={40} className="mx-auto text-neutral-200 mb-4" />
+                        <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">Aucune catégorie</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {catalogView === 'sizes' && (
+                  <SizesManager sizes={sizes} onChange={fetchData} />
+                )}
               </motion.div>
             )}
 
+            {/* ======================================================== */}
+            {/* COMMANDES                                                 */}
+            {/* ======================================================== */}
             {activeTab === 'orders' && (
-              <motion.div key="orders" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-8">
-                <SectionHeader title="Commandes" description="Suivi des ventes et détails des articles commandés." />
-                <OrderList 
-                  orders={orders} 
-                  expandedOrder={expandedOrder} 
-                  setExpandedOrder={setExpandedOrder} 
+              <motion.div key="orders" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }} className="space-y-8">
+                <SectionHeader title="Commandes" description="Suivi des ventes, articles commandés et remises." />
+                <OrderList
+                  orders={orders}
+                  expandedOrder={expandedOrder}
+                  setExpandedOrder={setExpandedOrder}
                 />
+              </motion.div>
+            )}
+
+            {/* ======================================================== */}
+            {/* MARKETING                                                 */}
+            {/* ======================================================== */}
+            {activeTab === 'marketing' && (
+              <motion.div key="marketing" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }} className="space-y-8">
+                <SectionHeader
+                  title="Marketing"
+                  description="Codes promo et slides Hero de la page d'accueil."
+                  actions={
+                    marketingView === 'hero' ? (
+                      <PrimaryButton onClick={() => { setEditingHero(null); setIsHeroModalOpen(true); }}><Plus size={16} />Nouvelle slide</PrimaryButton>
+                    ) : undefined
+                  }
+                />
+
+                <Segmented
+                  layoutId="marketing-seg"
+                  value={marketingView}
+                  onChange={setMarketingView}
+                  items={[
+                    { id: 'promos', label: 'Codes Promo', count: promoCodes.length, icon: <Tag size={14} /> },
+                    { id: 'hero', label: "Slides Hero", count: heroSections.length, icon: <Images size={14} /> },
+                  ]}
+                />
+
+                {marketingView === 'promos' && (
+                  <PromoManager promoCodes={promoCodes} products={products} onChange={fetchData} />
+                )}
+
+                {marketingView === 'hero' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {heroSections.map((slide, i) => (
+                      <motion.div
+                        key={slide.id}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="group relative flex flex-col overflow-hidden rounded-[24px] bg-white border border-black/[0.06] hover:shadow-[0_16px_40px_-24px_rgba(20,18,12,0.3)] transition-all duration-300"
+                      >
+                        <div className="relative aspect-video w-full overflow-hidden bg-neutral-100">
+                          {slide.image ? (
+                            <img src={getProductImageUrl(slide.image)} alt={slide.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center"><Images size={28} className="text-neutral-300" /></div>
+                          )}
+                        </div>
+                        <div className="p-4 space-y-0.5 flex-1">
+                          <h4 className="text-[14px] font-black tracking-tight text-neutral-900 line-clamp-1">{slide.title || 'Sans titre'}</h4>
+                          <p className="text-[11.5px] text-neutral-400 line-clamp-2 leading-relaxed">{slide.description || 'Pas de description'}</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 pb-4">
+                          <button onClick={() => { setEditingHero(slide); setIsHeroModalOpen(true); }} className="flex-1 py-2.5 rounded-xl bg-neutral-50 border border-black/[0.05] text-neutral-700 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-[11px] font-bold uppercase tracking-wider transition-all">Modifier</button>
+                          <button onClick={() => handleDeleteHero(slide.id)} className="p-2.5 rounded-xl bg-neutral-50 border border-black/[0.05] text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-all"><Trash2 size={15} /></button>
+                        </div>
+                      </motion.div>
+                    ))}
+                    {heroSections.length === 0 && (
+                      <div className="col-span-1 sm:col-span-2 xl:col-span-3 py-20 text-center border-2 border-dashed border-black/[0.08] rounded-[26px]">
+                        <Images size={40} className="mx-auto text-neutral-200 mb-4" />
+                        <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">Aucune slide Hero</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
-        </main>
-
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-4 z-50">
-          {[ { id: 'dashboard', icon: <LayoutDashboard size={24} /> }, { id: 'products', icon: <Package size={24} /> }, { id: 'orders', icon: <ShoppingCart size={24} /> }, { id: 'categories', icon: <Layers size={24} /> }, ].map((item) => (
-            <button key={item.id} onClick={() => setActiveTab(item.id as Tab)} className={cn("p-3 rounded-2xl transition-all duration-300", activeTab === item.id ? "bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]" : "text-white/40")}>{item.icon}</button>
-          ))}
-        </nav>
+          </main>
+        </div>
       </div>
 
-      <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} onSuccess={fetchData} editingItem={editingProduct} categories={categories} />
+      {/* Bottom Nav — Mobile (pilule flottante) */}
+      <nav className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 h-[68px] bg-white/90 backdrop-blur-2xl border border-black/[0.06] rounded-full flex items-center gap-1 px-3 z-50 shadow-[0_20px_50px_-16px_rgba(20,18,12,0.4)]">
+        {NAV.map((item) => {
+          const active = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id as Tab)}
+              aria-label={item.label}
+              className={cn(
+                "relative w-[52px] h-[52px] flex items-center justify-center rounded-full transition-all duration-300",
+                active ? "text-white" : "text-neutral-400"
+              )}
+            >
+              {active && (
+                <motion.span
+                  layoutId="mobile-active"
+                  transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+                  className="absolute inset-0 bg-neutral-900 rounded-full shadow-[0_10px_24px_-8px_rgba(20,18,12,0.55)]"
+                />
+              )}
+              <span className="relative z-10">{item.icon}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} onSuccess={fetchData} editingItem={editingProduct} categories={categories} sizesList={sizes} />
       <CategoryModal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} onSuccess={fetchData} editingItem={editingCategory} />
+      <HeroSectionModal isOpen={isHeroModalOpen} onClose={() => setIsHeroModalOpen(false)} onSuccess={fetchData} editingItem={editingHero} />
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(20,18,12,0.12); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(20,18,12,0.22); }
       `}</style>
     </div>
   );

@@ -13,7 +13,12 @@ export const metadata: Metadata = {
   title: 'For The Infinity | E-commerce',
   description: 'Une application e-commerce moderne et performante.',
   icons: {
-    icon: '/Favicon.jpeg',
+    icon: [
+      { url: '/favicon-256.png', type: 'image/png', sizes: '256x256' },
+      { url: '/favicon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    shortcut: '/favicon-256.png',
+    apple: '/favicon-256.png',
   },
 };
 

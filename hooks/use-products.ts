@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Product } from '@/types';
-import { supabase, getProductImageUrl } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { mapProductRecord, PRODUCTS_SELECT } from '@/lib/product-mapping';
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -10,30 +11,26 @@ export function useProducts() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const { data, error: supabaseError } = await supabase
+        // 1) Requête avec les tailles jointes (nécessite la migration commerce)
+        let data: any[] | null = null;
+        const joined = await supabase
           .from('products')
-          .select('*')
+          .select(PRODUCTS_SELECT)
           .order('created_at', { ascending: false });
 
-        if (supabaseError) throw supabaseError;
+        if (joined.error) {
+          // 2) Fallback : requête simple si la relation n'existe pas encore
+          const plain = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (plain.error) throw plain.error;
+          data = plain.data;
+        } else {
+          data = joined.data;
+        }
 
-        const mappedProducts = data.map((record: any) => ({
-          id: record.id,
-          name: record.name,
-          subtitle: record.subtitle,
-          price: record.price,
-          image: getProductImageUrl(record.image),
-          images: (record.images || []).map((path: string) => getProductImageUrl(path)),
-          tall: record.tall || false,
-          shortDescription: record.short_description,
-          extendedDescription: record.extended_description,
-          rating: record.rating,
-          reviewsCount: record.reviews_count,
-          variants: record.variants,
-          category: record.category_id,
-        }));
-
-        setProducts(mappedProducts);
+        setProducts((data || []).map((record: any) => mapProductRecord(record, record.product_sizes)));
       } catch (err: any) {
         setError(err.message);
       } finally {

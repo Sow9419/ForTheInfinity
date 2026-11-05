@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Star } from 'lucide-react';
-import { useCartStore } from '@/store/useCartStore';
+import { useCartStore, getEffectivePrice } from '@/store/useCartStore';
 
 interface ProductDetailsProps {
   collection: string;
@@ -27,6 +27,16 @@ export function ProductDetails({
 }: ProductDetailsProps) {
   const { items, addToCart, removeFromCart, updateCartItemSizes } = useCartStore();
   const [showError, setShowError] = React.useState(false);
+
+  const displaySizes = (product.sizes?.length
+    ? product.sizes
+    : (product.variants || []).map((name: string, i: number) => ({ name, inStock: true, position: i }))
+  ).sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+
+  const hasPromo =
+    product.inStock !== false &&
+    product.promoPrice != null &&
+    product.promoPrice < product.price;
   
   // On cherche le produit dans le panier pour avoir sa quantité réelle
   const cartItem = items.find(item => item.id === product.id);
@@ -63,6 +73,7 @@ export function ProductDetails({
   };
 
   const handleIncrement = () => {
+    if (product.inStock === false) return;
     addToCart(product, 1, selectedSizes);
   };
 
@@ -96,34 +107,84 @@ export function ProductDetails({
         </div>
       </div>
 
+      {/* Badges de statut — alignement horizontal, principal (promo / rupture) à gauche */}
+      {(hasPromo || product.inStock === false || product.isLimited || product.isNew) && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          {hasPromo && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50/80 backdrop-blur-md border border-emerald-200/70 text-emerald-700 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-black uppercase tracking-widest">
+                Promo{product.promoPrice != null && product.price > 0 ? ` −${Math.round((1 - product.promoPrice / product.price) * 100)}%` : ''}
+              </span>
+            </span>
+          )}
+          {product.inStock === false && (
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-50/80 backdrop-blur-md border border-red-200/70 text-red-600 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5)]">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[11px] font-black uppercase tracking-widest">Rupture de stock</span>
+            </span>
+          )}
+          {product.isLimited && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900/[0.06] backdrop-blur-md border border-black/[0.08] text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)]">
+              <span className="text-[9px] text-neutral-400">✦</span>
+              <span className="text-[11px] font-black uppercase tracking-widest">Limité</span>
+            </span>
+          )}
+          {product.isNew && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50/80 backdrop-blur-md border border-sky-200/70 text-sky-700 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5)]">
+              <span className="w-2 h-2 rounded-full bg-sky-500" />
+              <span className="text-[11px] font-black uppercase tracking-widest">Nouveau</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Product Variants (Taille) */}
       <div className="mt-8">
         <div className="flex items-center justify-between mb-4">
           <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Choisir Taille</span>
         </div>
         <div className="flex flex-wrap gap-3">
-          {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-            <button
-              key={size}
-              onClick={() => toggleSize(size)}
-              className={`
-                min-w-[50px] h-[50px] rounded-2xl border-2 font-black text-sm transition-all flex items-center justify-center
-                ${selectedSizes.includes(size) 
-                  ? 'bg-black border-black text-white shadow-lg scale-105' 
-                  : 'bg-transparent border-gray-400 text-gray-400 hover:border-black hover:text-black'}
-              `}
-            >
-              {size}
-            </button>
-          ))}
+          {displaySizes.map((size: any) => {
+            const outOfStock = product.inStock === false || size.inStock === false;
+            return (
+              <button
+                key={size.name}
+                onClick={() => !outOfStock && toggleSize(size.name)}
+                disabled={outOfStock}
+                title={outOfStock ? 'Taille en rupture' : 'Selectionner'}
+                className={`
+                  min-w-[50px] h-[50px] rounded-2xl border-2 font-black text-sm transition-all flex items-center justify-center
+                  ${outOfStock
+                    ? 'bg-transparent border-gray-400/60 text-gray-400/60 line-through cursor-not-allowed'
+                    : selectedSizes.includes(size.name)
+                      ? 'bg-black border-black text-white shadow-lg scale-105'
+                      : 'bg-transparent border-gray-400 text-gray-400 hover:border-black hover:text-black'}
+                `}
+              >
+                {size.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Price Tag & Quantity */}
       <div className="flex items-center justify-between mt-2 md:my-[10px]">
-        <div className="text-[28px] md:text-[32px] font-bold text-gray-900 md:text-[#111] tracking-tight">
-          {product.price.toLocaleString('en-US').replace(/,/g, '.')} FCFA
-        </div>
+        {hasPromo ? (
+          <div className="flex items-baseline gap-2">
+            <span className="text-[16px] md:text-[18px] text-gray-400 line-through">
+              {product.price.toLocaleString('en-US').replace(/,/g, '.')}
+            </span>
+            <span className="text-[28px] md:text-[32px] font-bold text-[#00A344] tracking-tight">
+              {getEffectivePrice(product).toLocaleString('en-US').replace(/,/g, '.')} FCFA
+            </span>
+          </div>
+        ) : (
+          <div className="text-[28px] md:text-[32px] font-bold text-gray-900 md:text-[#111] tracking-tight">
+            {product.price.toLocaleString('en-US').replace(/,/g, '.')} FCFA
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
           <button
@@ -136,7 +197,9 @@ export function ProductDetails({
           <span className="text-2xl font-medium w-6 text-center">{displayQuantity}</span>
           <button
             onClick={handleIncrement}
-            className="w-10 h-10 rounded-full bg-white border-gray-400 text-gray-400 hover:border-black hover:text-black flex items-center justify-center text-xl hover:bg-gray-200 transition-colors"
+            disabled={product.inStock === false}
+            title={product.inStock === false ? 'Rupture de stock' : undefined}
+            className="w-10 h-10 rounded-full bg-white border-gray-400 text-gray-400 hover:border-black hover:text-black flex items-center justify-center text-xl hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             +
           </button>

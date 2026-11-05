@@ -67,14 +67,14 @@ export default function ProductPage() {
           className="w-full h-full object-cover opacity-60 scale-110"
         />
         {/* Overlay blanc translucide pour l'effet light glass */}
-        <div className="absolute inset-0 backdrop-blur-xl bg-white/20" />
+        <div className="absolute inset-0 backdrop-blur-xl bg-black/40" />
       </div>
 
       <div className="relative z-10 flex flex-col md:flex-row w-full h-full">
 
         <FloatingWhatsApp
           productName={product.title}
-          price={product.price}
+          price={product.effectivePrice ?? product.price}
           quantity={currentQuantity}
           selectedSizes={selectedSizes}
         />

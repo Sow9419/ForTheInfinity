@@ -31,6 +31,7 @@ export function FooterBar({ product, isDesktop }: FooterBarProps) {
   const [orderQuantity, setOrderQuantity] = React.useState(1);
 
   const handleAddToCart = () => {
+    if (product?.inStock === false) return;
     addToCart(product, 1);
   };
 
@@ -79,9 +80,10 @@ export function FooterBar({ product, isDesktop }: FooterBarProps) {
         {/* Droite : Ajouter au panier */}
         <motion.button
           onClick={handleAddToCart}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative group bg-white text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] overflow-hidden shadow-lg transition-all"
+          whileHover={{ scale: product?.inStock === false ? 1 : 1.05 }}
+          whileTap={{ scale: product?.inStock === false ? 1 : 0.95 }}
+          disabled={product?.inStock === false}
+          className={`relative group bg-white text-black border-none py-[10px] md:py-[12px] px-[20px] md:px-[25px] rounded-full font-extrabold text-[12px] md:text-[13px] cursor-pointer flex items-center gap-[8px] overflow-hidden shadow-lg transition-all ${product?.inStock === false ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
           <div className="relative z-10 flex items-center gap-2">

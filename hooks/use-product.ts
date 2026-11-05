@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, getProductImageUrl } from '@/lib/supabase';
+import { mapProductRecord, PRODUCTS_SELECT } from '@/lib/product-mapping';
 
 export function useProduct(id: string) {
   const [product, setProduct] = useState<any>(null);
@@ -14,31 +15,36 @@ export function useProduct(id: string) {
 
     async function fetchProduct() {
       try {
-        const { data: record, error: supabaseError } = await supabase
+        // 1) Avec les tailles jointes (nécessite la migration commerce)
+        let record: any = null;
+        const joined = await supabase
           .from('products')
-          .select('*')
+          .select(PRODUCTS_SELECT)
           .eq('id', id)
           .single();
 
-        if (supabaseError) throw supabaseError;
+        if (joined.error) {
+          // 2) Fallback : requête simple si la relation n'existe pas encore
+          const plain = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', id)
+            .single();
+          if (plain.error) throw plain.error;
+          record = plain.data;
+        } else {
+          record = joined.data;
+        }
 
         if (record) {
+          const mapped = mapProductRecord(record, record.product_sizes);
+          const gallery = (mapped.images && mapped.images.length > 0)
+            ? mapped.images
+            : (record.image ? [getProductImageUrl(record.image)] : []);
+
           const enrichedProduct = {
-            id: record.id,
-            name: record.name,
-            subtitle: record.subtitle,
-            price: record.price,
-            image: getProductImageUrl(record.image),
-            images: record.images?.length > 0 
-              ? record.images.map((p: string) => getProductImageUrl(p)) 
-              : (record.image ? [getProductImageUrl(record.image)] : []),
-            tall: record.tall || false,
-            shortDescription: record.short_description,
-            extendedDescription: record.extended_description,
-            rating: record.rating,
-            reviewsCount: record.reviews_count,
-            variants: record.variants,
-            category: record.category_id,
+            ...mapped,
+            images: gallery,
             brand: "Jokin Mode",
             collection: record.subtitle || "Infinity Collection",
             title: record.name,

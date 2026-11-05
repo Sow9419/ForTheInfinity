@@ -19,7 +19,7 @@ export default function Home() {
             className="w-full h-full object-cover opacity-60 scale-110"
           />
           {/* Overlay de couleur pour teinter le fond (ex: bg-black/10, bg-blue-500/5, etc.) */}
-          <div className="absolute inset-0 backdrop-blur-xl bg-black/30" />
+          <div className="absolute inset-0 backdrop-blur-xl bg-black/80" />
         </div>
 
         <div className="relative z-10">

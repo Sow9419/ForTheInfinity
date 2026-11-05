@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ShoppingBag, Plus, Minus, X, ArrowLeft, ShoppingBasket, ChevronRight, ArrowRight } from 'lucide-react';
-import { useCartStore } from '../store/useCartStore';
+import { useCartStore, getEffectivePrice } from '../store/useCartStore';
 import { motion, AnimatePresence, useAnimation, useMotionValue } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -146,7 +146,7 @@ export function CartContent({ onClose, showHeader = true, showCloseOnMobile = fa
                     </div>
                   )}
 
-                  <p className="text-white font-black mt-1 text-sm">{item.price.toLocaleString('en-US')} FCFA</p>
+                  <p className="text-white font-black mt-1 text-sm">{getEffectivePrice(item).toLocaleString('en-US')} FCFA</p>
 
                   <div className="flex items-center gap-4 mt-3">
                     <div className="flex items-center gap-3 bg-white/20 backdrop-blur-2xl rounded-full border border-gray-500 p-1 px-2">

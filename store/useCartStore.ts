@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { Product } from '../types';
 
+/** Prix réellement facturé : prix promo si défini et inférieur, sinon prix de base */
+export const getEffectivePrice = (product: Product) =>
+  product.effectivePrice != null ? product.effectivePrice : product.price;
+
 interface CartItem extends Product {
   quantity: number;
   selectedSizes?: string[];
@@ -48,7 +52,7 @@ export const useCartStore = create<CartStore>((set) => ({
     return {
       items: updatedItems,
       cartCount: state.cartCount + quantity,
-      totalPrice: state.totalPrice + (product.price * quantity),
+      totalPrice: state.totalPrice + (getEffectivePrice(product) * quantity),
     };
   }),
 
@@ -63,7 +67,7 @@ export const useCartStore = create<CartStore>((set) => ({
     return {
       items: updatedItems,
       cartCount: state.cartCount - 1,
-      totalPrice: state.totalPrice - existingItem.price,
+      totalPrice: Math.max(0, state.totalPrice - getEffectivePrice(existingItem)),
     };
   }),
 

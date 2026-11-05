@@ -45,13 +45,15 @@ export function Header() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-1 bg-white/10 backdrop-blur-xl px-3 sm:px-5 py-2 sm:py-2 rounded-full border border-white/20 group cursor-pointer transition-all hover:bg-white/20">
-        <img 
-          src="/logo.png" 
-          alt="Infinity Logo" 
-          className="w-6 h-6 sm:w-8 sm:h-8 object-contain transition-transform duration-500 group-hover:rotate-12" 
-        />
-        <h1 className="text-lg sm:text-xl font-black text-white tracking-tighter uppercase leading-none">
+      <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-xl px-2.5 py-1.5 rounded-full border border-white/20 group cursor-pointer transition-all hover:bg-white/15">
+        <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center p-0.5 shrink-0 shadow-sm transition-transform duration-500 group-hover:rotate-12">
+          <img
+            src="/logo.png"
+            alt="Infinity Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <h1 className="text-lg sm:text-xl font-black text-white tracking-tighter uppercase leading-none pr-2">
           4THE<span className="font-light opacity-80">INFINITY</span>
         </h1>
       </div>

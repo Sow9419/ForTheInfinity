@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Phone, MapPin, Mail } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { STORE_PHONE_TEL, STORE_PHONE_DISPLAY, STORE_EMAIL, STORE_EMAIL_MAILTO } from '@/lib/settings';
 
 // -------------------------------------------------------------------------
 // MAGNETIC BUTTON PRIMITIVE (Framer Motion)
@@ -141,14 +142,14 @@ export function CinematicFooter() {
           >
             {/* Infos Contact */}
             <div className="flex flex-wrap justify-center gap-4 w-full">
-              <MagneticButton as="a" href="tel:+22376727121" className={cn(pillClass, "px-6 md:px-10 py-4 md:py-5 rounded-full text-white font-bold text-xs md:text-sm flex items-center gap-3 group")}>
+              <MagneticButton as="a" href={STORE_PHONE_TEL} className={cn(pillClass, "px-6 md:px-10 py-4 md:py-5 rounded-full text-white font-bold text-xs md:text-sm flex items-center gap-3 group")}>
                 <Phone className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
-                +223 76 72 71 21
+                {STORE_PHONE_DISPLAY}
               </MagneticButton>
 
-              <MagneticButton as="a" href="mailto:Issacissedon@gmail.com" className={cn(pillClass, "px-6 md:px-10 py-4 md:py-5 rounded-full text-white font-bold text-xs md:text-sm flex items-center gap-3 group")}>
+              <MagneticButton as="a" href={STORE_EMAIL_MAILTO} className={cn(pillClass, "px-6 md:px-10 py-4 md:py-5 rounded-full text-white font-bold text-xs md:text-sm flex items-center gap-3 group")}>
                 <Mail className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
-                Issacissedon@gmail.com
+                {STORE_EMAIL}
               </MagneticButton>
 
               <MagneticButton as="div" className={cn(pillClass, "px-6 md:px-10 py-4 md:py-5 rounded-full text-white font-bold text-xs md:text-sm flex items-center gap-3 group")}>
