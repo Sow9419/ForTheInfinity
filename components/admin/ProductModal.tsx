@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { supabase, getProductImageUrl } from '@/lib/supabase';
+import { describeSupabaseError } from '@/lib/supabase-errors';
 import { Category, SizeOption } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -163,7 +164,7 @@ export function ProductModal({ isOpen, onClose, onSuccess, editingItem, categori
       onSuccess();
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(false);
     }

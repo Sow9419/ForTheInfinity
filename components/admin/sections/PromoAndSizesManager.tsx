@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Loader2, Tag, ArrowUp, ArrowDown, Check, Pencil } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { describeSupabaseError } from '@/lib/supabase-errors';
 import { PromoCode, SizeOption, Product } from '@/types';
 import { cn } from '@/lib/utils';
 // shadcn/ui
@@ -53,7 +54,7 @@ export function PromoManager({ promoCodes, products = [], onChange }: PromoManag
       setProductListOpen(false);
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -66,7 +67,7 @@ export function PromoManager({ promoCodes, products = [], onChange }: PromoManag
       if (error) throw error;
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -80,7 +81,7 @@ export function PromoManager({ promoCodes, products = [], onChange }: PromoManag
       if (error) throw error;
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -323,7 +324,7 @@ export function SizesManager({ sizes, onChange }: SizesManagerProps) {
       setNewSize('');
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -349,7 +350,7 @@ export function SizesManager({ sizes, onChange }: SizesManagerProps) {
       if (error) throw error;
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -363,7 +364,7 @@ export function SizesManager({ sizes, onChange }: SizesManagerProps) {
       if (error) throw error;
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }
@@ -386,7 +387,7 @@ export function SizesManager({ sizes, onChange }: SizesManagerProps) {
       }
       onChange();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(null);
     }

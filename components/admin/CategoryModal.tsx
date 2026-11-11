@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, Layers } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { describeSupabaseError } from '@/lib/supabase-errors';
 import { Category } from '@/types';
 
 interface CategoryModalProps {
@@ -38,7 +39,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, editingItem }: Categ
       onSuccess();
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(false);
     }

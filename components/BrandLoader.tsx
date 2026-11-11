@@ -33,7 +33,7 @@ export function BrandLoader({ className = '' }: { className?: string }) {
         </h2>
         <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-gray-400/80 to-transparent" />
         <p className="text-gray-500/90 text-[10px] uppercase tracking-[0.35em] mt-1 font-light text-center leading-relaxed">
-          Built on loyalty. Mode for the infinity
+          Built on loyalty. Made for the infinity
         </p>
       </motion.div>
     </div>

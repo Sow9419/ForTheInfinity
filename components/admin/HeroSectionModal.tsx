@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, Trash2 } from 'lucide-react';
 import { supabase, getProductImageUrl } from '@/lib/supabase';
+import { describeSupabaseError } from '@/lib/supabase-errors';
 import { HeroSlide } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -88,7 +89,7 @@ export function HeroSectionModal({ isOpen, onClose, onSuccess, editingItem }: He
       onSuccess();
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      alert(describeSupabaseError(error));
     } finally {
       setLoading(false);
     }
